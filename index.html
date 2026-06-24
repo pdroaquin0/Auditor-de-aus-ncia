@@ -4,35 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Metrocasa · Acesso ao Salesforce</title>
+<meta name="theme-color" content="#C8102E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Acesso SF">
 <style>
   :root{
-    --ground:#F4F7F3; --panel:#FFFFFF; --ink:#101814; --muted:#5E6B62;
-    --hair:#E2E8E0; --hair2:#EEF2EC;
-    --brand:#06A04A; --brand-d:#04733A; --brand-soft:#E3F5EA;
-    --signal:#E0342A; --signal-soft:#FCE7E5;
-    --present:#CDE9D6; --present-ink:#0B7A3D; --ok:#06A04A; --warn:#B45309;
-    --geo:#0E6E8C;
+    --ground:#F7F5F1; --panel:#FFFFFF; --ink:#1A1613; --muted:#6E665D;
+    --hair:#E7E1D9; --hair2:#F0ECE5;
+    --brand:#C8102E; --brand-d:#9C0C24; --brand-soft:#FBE7E9;
+    --signal:#C8102E; --signal-soft:#FBE7E9;
+    --present:#CBD7CD; --present-ink:#5C7A66; --present-soft:#E9F0EB; --ok:#5C7A66; --warn:#B45309;
+    --geo:#1F5C72;
     --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
     --ui:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{background:var(--ground);color:var(--ink);font-family:var(--ui);
     font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1180px;margin:0 auto;padding:0 24px 80px}
-  .brandband{height:5px;background:linear-gradient(90deg,var(--brand),var(--brand-d));margin:0 -24px}
+  .brandband{height:4px;background:var(--brand);margin:0 -24px}
 
   header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
-    border-bottom:1px solid var(--hair);padding:26px 0 16px;margin-bottom:6px}
-  .brand{display:flex;flex-direction:column;gap:3px}
-  .wordmark{font-size:23px;font-weight:800;letter-spacing:-.035em;color:var(--ink);line-height:1}
+    border-bottom:1px solid var(--hair);padding:30px 0 20px;margin-bottom:6px}
+  .brand{display:flex;flex-direction:column;gap:5px}
+  .wordmark{font-size:24px;font-weight:800;letter-spacing:-.04em;color:var(--ink);line-height:1}
   .wordmark .plus{color:var(--brand);font-weight:800}
-  .brand .unit{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-d)}
+  .brand .unit{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--brand)}
   .ttl{text-align:right}
-  header.top h1{font-size:19px;font-weight:680;letter-spacing:-.02em;margin:0}
-  header.top .tag{font-family:var(--mono);font-size:11px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:.1em}
-  .sub{color:var(--muted);font-size:13px;margin:10px 0 28px;max-width:62ch}
+  header.top h1{font-family:var(--serif);font-size:27px;font-weight:600;letter-spacing:-.01em;margin:0;color:var(--ink)}
+  header.top .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.16em}
+  .confid{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--brand);border:1px solid var(--brand);border-radius:3px;padding:2px 7px;margin-top:8px}
+  .installbtn{margin-top:10px;font-family:var(--ui);font-size:12.5px;font-weight:600;background:var(--brand);
+    color:#fff;border:0;border-radius:8px;padding:8px 15px;cursor:pointer;
+    box-shadow:0 8px 18px -8px rgba(200,16,46,.55)}
+  .installbtn:hover{background:var(--brand-d)}
+  .sub{color:var(--muted);font-size:13.5px;margin:14px 0 30px;max-width:64ch;line-height:1.65}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:720px){.grid2{grid-template-columns:1fr}}
@@ -89,7 +104,7 @@
   .stat.flag .n{color:var(--signal)}
   .note{font-size:13px;padding:11px 14px;border-radius:8px;margin:10px 0}
   .note.warn{background:var(--signal-soft);color:#8A1F18;border:1px solid #F3C2BD}
-  .note.ok{background:#EAF4EC;color:#225C2F;border:1px solid #BFE0C5}
+  .note.ok{background:var(--present-soft);color:var(--present-ink);border:1px solid #CBD7CD}
   .note details{margin-top:6px}
   .note summary{cursor:pointer;font-weight:600}
   .note .list{font-family:var(--mono);font-size:12px;margin-top:6px;max-height:160px;overflow:auto;
@@ -108,10 +123,10 @@
   table.summary th.num,table.summary td.num{text-align:right;font-family:var(--mono)}
   table.summary td.nome{font-weight:550}
   table.summary tr:last-child td{border-bottom:0}
-  table.summary tbody tr:hover{background:#F4F9F5}
+  table.summary tbody tr:hover{background:#FAF7F2}
   .faltacell{font-family:var(--mono);font-weight:600}
   .faltacell.hot{color:var(--signal)}
-  tr.totals td{font-weight:700;border-top:2px solid var(--brand-d);background:#F2F8F3}
+  tr.totals td{font-weight:700;border-top:2px solid var(--ink);background:#F4F1EC}
   .pct{font-family:var(--mono);color:var(--muted)}
 
   /* grid / heatmap */
@@ -157,11 +172,11 @@
   .callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:22px}
   .callout{border:1px solid var(--hair);border-radius:10px;padding:14px 16px;background:var(--panel)}
   .callout.bad{border-color:#F2C5A8;background:linear-gradient(180deg,#fff, #FFF7F2)}
-  .callout.good{border-color:#BFE0C5;background:linear-gradient(180deg,#fff,#F4FBF5)}
+  .callout.good{border-color:#CBD7CD;background:linear-gradient(180deg,#fff,#F6F9F6)}
   .callout .ckk{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-  .callout .cv{font-size:17px;font-weight:650;margin-top:4px;letter-spacing:-.01em}
+  .callout .cv{font-family:var(--serif);font-size:18px;font-weight:600;margin-top:5px}
   .callout .cm{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px}
-  .callout.bad .big{color:var(--signal)} .callout.good .big{color:var(--ok)}
+  .callout.bad .big{color:var(--signal)} .callout.good .big{color:var(--present-ink)}
   .callout .big{font-family:var(--mono);font-weight:700}
 
   .secttl{font-size:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;
@@ -184,7 +199,7 @@
     grid-template-columns:18px minmax(140px,1fr) 120px 90px 70px;gap:10px;align-items:center;
     padding:9px 12px}
   details.node>summary::-webkit-details-marker{display:none}
-  details.node>summary:hover{background:#F4F9F5}
+  details.node>summary:hover{background:#FAF7F2}
   .caret{font-family:var(--mono);color:var(--muted);transition:transform .15s;font-size:12px}
   details[open]>summary .caret{transform:rotate(90deg)}
   .nname{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -194,7 +209,7 @@
   .ntaxa{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink)}
   .ntaxa.hot{color:var(--signal);font-weight:600}
   .ncount{font-family:var(--mono);font-size:11px;text-align:right;color:var(--muted)}
-  .node .kids{padding-left:14px;background:#FCFBF9}
+  .node .kids{padding-left:14px;background:#FBF9F6}
   .lv2>summary{padding-left:22px} .lv3>summary{padding-left:34px}
   .leaf{display:grid;grid-template-columns:18px minmax(140px,1fr) 120px 90px 70px;gap:10px;align-items:center;
     padding:6px 12px 6px 46px;border-top:1px solid var(--hair2);font-size:12.5px}
@@ -228,17 +243,17 @@
   .profile{background:var(--panel);border:1px solid var(--ink);border-radius:12px;padding:0;margin:14px 0 6px;overflow:hidden}
   .prof-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:16px 18px 14px;
     background:linear-gradient(180deg,#fff,#FBFAF6);border-bottom:1px solid var(--hair)}
-  .prof-id .pnome{font-size:18px;font-weight:680;letter-spacing:-.01em}
+  .prof-id .pnome{font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:0}
   .prof-id .pmail{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px}
   .prof-path{font-size:12px;color:var(--muted);margin-top:7px}
   .prof-path b{color:var(--ink);font-weight:600}
   .prof-path .sep{color:var(--hair);margin:0 6px}
   .prof-src{font-size:12px;color:var(--muted);margin-top:6px}
   .prof-src b{color:var(--ink);font-family:var(--mono)}
-  .prof-src.warn{color:#8A1F18}
-  .efmark{color:var(--brand-d);font-weight:700;margin-left:3px;cursor:help}
-  .novobadge{font-family:var(--ui);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
-    color:var(--brand-d);background:var(--brand-soft);border:1px solid #BFE3CD;border-radius:999px;
+  .prof-src.warn{color:var(--brand-d)}
+  .efmark{color:var(--muted);font-weight:700;margin-left:3px;cursor:help}
+  .novobadge{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);background:var(--hair2);border:1px solid var(--hair);border-radius:3px;
     padding:1px 6px;margin-left:6px;cursor:help;vertical-align:1px}
   .prof-close{border:1px solid var(--hair);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;
     font-size:12px;color:var(--muted)}
@@ -261,7 +276,7 @@
   .strip{display:flex;flex-wrap:wrap;gap:3px}
   .scell{width:15px;height:22px;border-radius:3px;border:1px solid var(--hair2)}
   .scell.falta{background:var(--signal);border-color:var(--signal)}
-  .scell.pres{background:var(--brand-soft);border-color:#BFE3CD}
+  .scell.pres{background:var(--present-soft);border-color:#CBD7CD}
   .scell.off{background:repeating-linear-gradient(45deg,#fff,#fff 2px,#F1EFE9 2px,#F1EFE9 4px)}
 
   /* mini-mapa */
@@ -269,14 +284,24 @@
   .geomap{width:100%;height:auto;max-height:320px;background:#FCFBF8;border:1px solid var(--hair);border-radius:10px}
   .geoframe{fill:#fff;stroke:var(--hair);stroke-width:1}
   .grat{stroke:var(--hair2);stroke-width:1}
-  .geodot{fill:rgba(14,116,144,.45);stroke:#0E7490;stroke-width:1.2}
-  .geodot.dom{fill:rgba(14,116,144,.8);stroke:#0E7490;stroke-width:1.6}
+  .geodot{fill:rgba(31,92,114,.45);stroke:var(--geo);stroke-width:1.2}
+  .geodot.dom{fill:rgba(31,92,114,.85);stroke:var(--geo);stroke-width:1.6}
   .geolab{font-family:var(--mono);font-size:11px;fill:var(--ink)}
   .geolist{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-  .geocity{font-size:12px;font-family:var(--ui);background:#F2F7F8;border:1px solid #CFE3E7;border-radius:999px;padding:4px 11px;color:#0E5567}
-  .geocity b{font-family:var(--mono);color:#0E7490}
+  .geocity{font-size:12px;font-family:var(--ui);background:#F1F5F6;border:1px solid #D2E0E4;border-radius:3px;padding:4px 11px;color:var(--geo)}
+  .geocity b{font-family:var(--mono);color:var(--geo)}
   .geonote{font-size:11.5px;color:var(--muted);margin:10px 0 0;font-style:italic}
   .nogeo{font-size:13px;color:var(--muted);margin:6px 0 0}
+
+  /* polimento executivo — profundidade sutil */
+  table.summary,.profile,.tree,.kpis,.gridscroll,fieldset.controls,.diag,.geomap{
+    box-shadow:0 1px 2px rgba(26,22,19,.04),0 14px 34px -20px rgba(26,22,19,.16)}
+  .callout{box-shadow:0 1px 2px rgba(26,22,19,.03),0 10px 24px -18px rgba(26,22,19,.14)}
+  .kpi .n,.pk .n,.stat .n{font-variant-numeric:tabular-nums}
+  header.top h1{position:relative}
+  .secttl{letter-spacing:.16em}
+  button.run{letter-spacing:.01em;box-shadow:0 8px 20px -10px rgba(200,16,46,.5)}
+  .viewtabs button[aria-pressed=true]{background:var(--brand);border-color:var(--brand)}
 </style>
 </head>
 <body>
@@ -291,6 +316,8 @@
     <div class="ttl">
       <h1>Acesso ao Salesforce</h1>
       <span class="tag">logins × cadastro · dias sem login</span>
+      <div><span class="confid">Confidencial · uso interno</span></div>
+      <div><button class="installbtn" id="installBtn" style="display:none">⬇ Instalar app</button></div>
     </div>
   </header>
   <p class="sub">Solte os dois CSVs, defina o período e as regras. A ferramenta cruza quem é
@@ -1165,27 +1192,27 @@ function buildStandalone(rep,meta){
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Relatório de acesso ao Salesforce · ${meta.ini} a ${meta.fim}</title>
 <style>
-:root{--ground:#F4F7F3;--panel:#fff;--ink:#101814;--muted:#5E6B62;--hair:#E2E8E0;--hair2:#EEF2EC;--brand:#06A04A;--brand-d:#04733A;--brand-soft:#E3F5EA;--signal:#E0342A;--ok:#06A04A;
+:root{--ground:#F7F5F1;--panel:#fff;--ink:#1A1613;--muted:#6E665D;--hair:#E7E1D9;--hair2:#F0ECE5;--brand:#C8102E;--brand-d:#9C0C24;--brand-soft:#FBE7E9;--signal:#C8102E;--ok:#5C7A66;--present-ink:#5C7A66;--geo:#1F5C72;--serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
 --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.5}
-.wrap{max-width:1080px;margin:0 auto;padding:0 22px 80px}.brandband{height:5px;background:linear-gradient(90deg,var(--brand),var(--brand-d));margin:0 -22px 26px}.brandhd{display:flex;flex-direction:column;gap:2px;margin-bottom:14px}.wordmark{font-size:21px;font-weight:800;letter-spacing:-.035em;color:var(--ink)}.wordmark .plus{color:var(--brand)}.brandhd .unit{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-d)}
-h1{font-size:22px;font-weight:650;letter-spacing:-.02em;margin:0 0 4px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px 80px}.cover{background:var(--ink);color:#fff;margin:0 -22px 26px;padding:30px 40px 28px;border-bottom:4px solid var(--brand)}.cover .wordmark{font-size:22px;font-weight:800;letter-spacing:-.04em;color:#fff}.cover .wordmark .plus{color:var(--brand)}.cover .ek{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--brand);margin:16px 0 6px}.cover h1{font-family:var(--serif);font-size:32px;font-weight:600;letter-spacing:-.01em;color:#fff;margin:0}.cover .meta2{font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.66);margin-top:12px;letter-spacing:.02em}.cover .confid{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:3px;padding:3px 8px;margin-top:14px}
+h1{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px}.kpis,.tree,.callout{box-shadow:0 1px 2px rgba(26,22,19,.04),0 14px 34px -22px rgba(26,22,19,.16)}.callout .cv{font-family:var(--serif)}
 .meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:24px}
 .bar{border-bottom:1px solid var(--hair);padding-bottom:12px;margin-bottom:22px}
 .ctr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
 .ctr span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 .seg{display:inline-flex;border:1px solid var(--hair);border-radius:7px;overflow:hidden}
 .seg button{font-family:var(--ui);font-size:12px;padding:6px 11px;border:0;background:#fff;color:var(--muted);cursor:pointer}
-.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.seg button[aria-pressed=true]{background:var(--brand);color:#fff}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--hair);border:1px solid var(--hair);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .kpi{background:#fff;padding:15px 16px}.kpi .n{font-family:var(--mono);font-size:26px;font-weight:600}.kpi .n.sig{color:var(--signal)}
 .kpi .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:22px}
 .callout{border:1px solid var(--hair);border-radius:10px;padding:14px 16px;background:#fff}
-.callout.bad{border-color:#F3C2BD;background:linear-gradient(180deg,#fff,#FFF5F4)}.callout.good{border-color:#BFE0C5;background:linear-gradient(180deg,#fff,#F4FBF5)}
+.callout.bad{border-color:#F3C2BD;background:linear-gradient(180deg,#fff,#FFF5F4)}.callout.good{border-color:#CBD7CD;background:linear-gradient(180deg,#fff,#F6F9F6)}
 .callout .ckk{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .callout .cv{font-size:17px;font-weight:650;margin-top:4px}.callout .cm{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px}
-.callout .big{font-family:var(--mono);font-weight:700}.callout.bad .big{color:var(--signal)}.callout.good .big{color:var(--ok)}
+.callout .big{font-family:var(--mono);font-weight:700}.callout.bad .big{color:var(--signal)}.callout.good .big{color:var(--present-ink)}
 .secttl{font-size:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:24px 0 10px;display:flex;align-items:center;gap:10px}
 .secttl::after{content:"";flex:1;height:1px;background:var(--hair)}
 .rank{display:flex;flex-direction:column;gap:7px}
@@ -1198,22 +1225,19 @@ h1{font-size:22px;font-weight:650;letter-spacing:-.02em;margin:0 0 4px}
 .tree{border:1px solid var(--hair);border-radius:10px;overflow:hidden;background:#fff}
 details.node{border-top:1px solid var(--hair2)}details.node:first-child{border-top:0}
 details.node>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:18px minmax(140px,1fr) 120px 90px 70px;gap:10px;align-items:center;padding:9px 12px}
-details.node>summary::-webkit-details-marker{display:none}details.node>summary:hover{background:#F4F9F5}
+details.node>summary::-webkit-details-marker{display:none}details.node>summary:hover{background:#FAF7F2}
 .caret{font-family:var(--mono);color:var(--muted);transition:transform .15s;font-size:12px}details[open]>summary .caret{transform:rotate(90deg)}
 .nname{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lv2 .nname{font-weight:550;font-size:13px}.lv3 .nname{font-weight:500;font-size:12.5px}
 .nbar{background:var(--hair2);height:14px;border-radius:4px;overflow:hidden}.nbar i{display:block;height:100%;background:var(--signal);border-radius:4px}
 .ntaxa{font-family:var(--mono);font-size:12px;text-align:right}.ntaxa.hot{color:var(--signal);font-weight:600}
 .ncount{font-family:var(--mono);font-size:11px;text-align:right;color:var(--muted)}
-.kids{padding-left:14px;background:#FCFBF9}.lv2>summary{padding-left:22px}.lv3>summary{padding-left:34px}
+.kids{padding-left:14px;background:#FBF9F6}.lv2>summary{padding-left:22px}.lv3>summary{padding-left:34px}
 .leaf{display:grid;grid-template-columns:18px minmax(140px,1fr) 120px 90px 70px;gap:10px;align-items:center;padding:6px 12px 6px 46px;border-top:1px solid var(--hair2);font-size:12.5px}
 .leaf .lname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaf .lfalta{font-family:var(--mono);text-align:right}.leaf .lfalta.hot{color:var(--signal);font-weight:600}
 .foot{margin-top:36px;font-size:12px;color:var(--muted);border-top:1px solid var(--hair);padding-top:14px}
 </style></head><body><div class="wrap">
-<div class="brandband"></div>
-<div class="brandhd"><span class="wordmark">metrocasa<span class="plus">+</span></span><span class="unit">comercial · acesso ao Salesforce</span></div>
-<div class="bar"><h1>Relatório de acesso ao Salesforce</h1>
-<div class="meta">período ${meta.ini} → ${meta.fim} · ${meta.modo} · gerado em ${meta.gerado}</div></div>
+<div class="cover"><span class="wordmark">metrocasa<span class="plus">+</span></span><div class="ek">Relatório executivo · comercial</div><h1>Acesso ao Salesforce</h1><div class="meta2">período ${meta.ini} → ${meta.fim} · ${meta.modo} · gerado em ${meta.gerado}</div><div><span class="confid">Confidencial · uso interno</span></div></div>
 <div class="ctr">
 <span>métrica</span><div class="seg" id="segMetric"><button data-v="taxa" aria-pressed="true">% sem login</button><button data-v="abs" aria-pressed="false">Dias sem login</button></div>
 <span style="margin-left:6px">ranking por</span><div class="seg" id="segDim"><button data-v="diretoria" aria-pressed="true">Diretoria</button><button data-v="superint" aria-pressed="false">Superint.</button><button data-v="gerencia" aria-pressed="false">Gerência</button></div>
@@ -1349,6 +1373,22 @@ document.querySelectorAll(".presets button").forEach(b=>{
     if(ST.base&&ST.etv) document.getElementById("btnRun").click();
   });
 });
+</script>
+<script>
+/* PWA: service worker + botão de instalar */
+(function(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+  var deferred=null, btn=document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; if(btn) btn.style.display='inline-block'; });
+  if(btn) btn.addEventListener('click',function(){
+    if(!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.finally(function(){ deferred=null; btn.style.display='none'; });
+  });
+  window.addEventListener('appinstalled',function(){ if(btn) btn.style.display='none'; });
+})();
 </script>
 </body>
 </html>
