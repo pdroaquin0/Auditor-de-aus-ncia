@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auditor de ausência · consultores</title>
+<title>Metrocasa · Acesso ao Salesforce</title>
 <style>
   :root{
-    --ground:#FBFAF8; --panel:#FFFFFF; --ink:#1A1D21; --muted:#6B7178;
-    --hair:#E6E3DC; --hair2:#F0EEE8; --signal:#C2410C; --signal-soft:#FDEAD9;
-    --present:#DDE7DA; --present-ink:#4B6B49; --ok:#15803D; --warn:#B45309;
+    --ground:#F4F7F3; --panel:#FFFFFF; --ink:#101814; --muted:#5E6B62;
+    --hair:#E2E8E0; --hair2:#EEF2EC;
+    --brand:#06A04A; --brand-d:#04733A; --brand-soft:#E3F5EA;
+    --signal:#E0342A; --signal-soft:#FCE7E5;
+    --present:#CDE9D6; --present-ink:#0B7A3D; --ok:#06A04A; --warn:#B45309;
+    --geo:#0E6E8C;
     --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
     --ui:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
@@ -16,13 +19,19 @@
   html,body{margin:0}
   body{background:var(--ground);color:var(--ink);font-family:var(--ui);
     font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1180px;margin:0 auto;padding:32px 24px 80px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 80px}
+  .brandband{height:5px;background:linear-gradient(90deg,var(--brand),var(--brand-d));margin:0 -24px}
 
-  header.top{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
-    border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:6px}
-  header.top h1{font-size:20px;font-weight:650;letter-spacing:-.02em;margin:0}
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    border-bottom:1px solid var(--hair);padding:26px 0 16px;margin-bottom:6px}
+  .brand{display:flex;flex-direction:column;gap:3px}
+  .wordmark{font-size:23px;font-weight:800;letter-spacing:-.035em;color:var(--ink);line-height:1}
+  .wordmark .plus{color:var(--brand);font-weight:800}
+  .brand .unit{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-d)}
+  .ttl{text-align:right}
+  header.top h1{font-size:19px;font-weight:680;letter-spacing:-.02em;margin:0}
   header.top .tag{font-family:var(--mono);font-size:11px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:.12em}
+    text-transform:uppercase;letter-spacing:.1em}
   .sub{color:var(--muted);font-size:13px;margin:10px 0 28px;max-width:62ch}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -58,9 +67,9 @@
     padding:8px 9px;border:1px solid var(--hair);border-radius:7px;background:#fff;color:var(--ink)}
 
   .actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
-  button.run{font-family:var(--ui);font-weight:600;font-size:14px;background:var(--ink);
+  button.run{font-family:var(--ui);font-weight:600;font-size:14px;background:var(--brand);
     color:#fff;border:0;border-radius:8px;padding:11px 22px;cursor:pointer}
-  button.run:hover{background:#000}
+  button.run:hover{background:var(--brand-d)}
   button.run:disabled{opacity:.35;cursor:not-allowed}
   button.ghost{font-family:var(--ui);font-size:13px;background:#fff;color:var(--ink);
     border:1px solid var(--hair);border-radius:8px;padding:9px 16px;cursor:pointer}
@@ -79,7 +88,7 @@
   .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
   .stat.flag .n{color:var(--signal)}
   .note{font-size:13px;padding:11px 14px;border-radius:8px;margin:10px 0}
-  .note.warn{background:var(--signal-soft);color:#7C2D12;border:1px solid #F2C5A8}
+  .note.warn{background:var(--signal-soft);color:#8A1F18;border:1px solid #F3C2BD}
   .note.ok{background:#EAF4EC;color:#225C2F;border:1px solid #BFE0C5}
   .note details{margin-top:6px}
   .note summary{cursor:pointer;font-weight:600}
@@ -99,10 +108,10 @@
   table.summary th.num,table.summary td.num{text-align:right;font-family:var(--mono)}
   table.summary td.nome{font-weight:550}
   table.summary tr:last-child td{border-bottom:0}
-  table.summary tbody tr:hover{background:#FBFAF6}
+  table.summary tbody tr:hover{background:#F4F9F5}
   .faltacell{font-family:var(--mono);font-weight:600}
   .faltacell.hot{color:var(--signal)}
-  tr.totals td{font-weight:700;border-top:2px solid var(--ink);background:#FAF8F4}
+  tr.totals td{font-weight:700;border-top:2px solid var(--brand-d);background:#F2F8F3}
   .pct{font-family:var(--mono);color:var(--muted)}
 
   /* grid / heatmap */
@@ -130,7 +139,7 @@
   .sw.pres{background:#fff}
   .sw.off{background:repeating-linear-gradient(45deg,#fff,#fff 3px,#F4F2EC 3px,#F4F2EC 6px)}
 
-  .err{background:var(--signal-soft);border:1px solid #F2C5A8;color:#7C2D12;
+  .err{background:var(--signal-soft);border:1px solid #F3C2BD;color:#8A1F18;
     padding:12px 14px;border-radius:8px;margin-top:14px;font-size:13px;display:none}
   .hide{display:none}
   .foot{margin-top:40px;font-size:12px;color:var(--muted);border-top:1px solid var(--hair);padding-top:14px}
@@ -164,7 +173,7 @@
   .rankrow .lab{font-size:13px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .rankrow .lab small{display:block;font-weight:400;color:var(--muted);font-family:var(--mono);font-size:10.5px}
   .bartrack{background:var(--hair2);border-radius:5px;height:22px;overflow:hidden;position:relative}
-  .barfill{height:100%;background:linear-gradient(90deg,#E2632A,var(--signal));border-radius:5px;min-width:2px;
+  .barfill{height:100%;background:linear-gradient(90deg,#F0766F,var(--signal));border-radius:5px;min-width:2px;
     transition:width .5s cubic-bezier(.2,.8,.2,1)}
   .rankrow .vv{font-family:var(--mono);font-weight:600;font-size:13px;text-align:right;min-width:62px}
 
@@ -175,7 +184,7 @@
     grid-template-columns:18px minmax(140px,1fr) 120px 90px 70px;gap:10px;align-items:center;
     padding:9px 12px}
   details.node>summary::-webkit-details-marker{display:none}
-  details.node>summary:hover{background:#FBFAF6}
+  details.node>summary:hover{background:#F4F9F5}
   .caret{font-family:var(--mono);color:var(--muted);transition:transform .15s;font-size:12px}
   details[open]>summary .caret{transform:rotate(90deg)}
   .nname{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -192,18 +201,94 @@
   .leaf .lname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .leaf .lfalta{font-family:var(--mono);text-align:right}
   .leaf .lfalta.hot{color:var(--signal);font-weight:600}
+
+  /* presets */
+  .presets{display:flex;gap:6px}
+  .presets button{font-family:var(--ui);font-size:12px;padding:7px 10px;border:1px solid var(--hair);
+    background:#fff;border-radius:7px;color:var(--muted);cursor:pointer}
+  .presets button:hover{border-color:var(--ink);color:var(--ink)}
+
+  /* busca + perfil */
+  .searchbar{margin:22px 0 4px}
+  .searchwrap{display:flex;align-items:center;gap:8px;background:var(--panel);border:1.5px solid var(--hair);
+    border-radius:10px;padding:4px 12px;max-width:520px}
+  .searchwrap:focus-within{border-color:var(--ink)}
+  .searchwrap .sicon{font-size:18px;color:var(--muted)}
+  .searchwrap input{flex:1;border:0;outline:0;font-size:14px;font-family:var(--ui);padding:8px 0;background:transparent;color:var(--ink)}
+  .clearbtn{border:0;background:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:0 4px}
+  .clearbtn:hover{color:var(--ink)}
+  .matches{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{font-size:12.5px;font-family:var(--ui);background:#fff;border:1px solid var(--hair);border-radius:999px;
+    padding:5px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .chip:hover{border-color:var(--ink)}
+  .chip .cf{font-family:var(--mono);font-size:11px;color:var(--signal);font-weight:600}
+  .chip .cf.cool{color:var(--present-ink)}
+  .matches .none{font-size:12.5px;color:var(--muted);font-family:var(--mono)}
+
+  .profile{background:var(--panel);border:1px solid var(--ink);border-radius:12px;padding:0;margin:14px 0 6px;overflow:hidden}
+  .prof-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:16px 18px 14px;
+    background:linear-gradient(180deg,#fff,#FBFAF6);border-bottom:1px solid var(--hair)}
+  .prof-id .pnome{font-size:18px;font-weight:680;letter-spacing:-.01em}
+  .prof-id .pmail{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px}
+  .prof-path{font-size:12px;color:var(--muted);margin-top:7px}
+  .prof-path b{color:var(--ink);font-weight:600}
+  .prof-path .sep{color:var(--hair);margin:0 6px}
+  .prof-close{border:1px solid var(--hair);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;
+    font-size:12px;color:var(--muted)}
+  .prof-close:hover{border-color:var(--ink);color:var(--ink)}
+  .prof-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--hair2)}
+  .pk{background:#fff;padding:12px 14px}
+  .pk .n{font-family:var(--mono);font-size:21px;font-weight:600}
+  .pk .n.sig{color:var(--signal)}.pk .n.ok{color:var(--ok)}
+  .pk .k{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+  .prof-bench{padding:14px 18px;border-top:1px solid var(--hair);display:flex;flex-direction:column;gap:9px}
+  .benchrow{display:grid;grid-template-columns:120px 1fr 54px;gap:10px;align-items:center;font-size:12.5px}
+  .benchrow .bl{color:var(--muted)}
+  .benchtrack{height:16px;background:var(--hair2);border-radius:4px;position:relative;overflow:hidden}
+  .benchtrack i{position:absolute;top:0;bottom:0;left:0;border-radius:4px}
+  .benchtrack i.me{background:var(--signal);z-index:2}
+  .benchtrack i.avg{background:#B9C0C6}
+  .benchrow .bv{font-family:var(--mono);text-align:right;font-weight:600}
+  .prof-strip{padding:12px 18px 18px;border-top:1px solid var(--hair)}
+  .prof-strip .stl{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+  .strip{display:flex;flex-wrap:wrap;gap:3px}
+  .scell{width:15px;height:22px;border-radius:3px;border:1px solid var(--hair2)}
+  .scell.falta{background:var(--signal);border-color:var(--signal)}
+  .scell.pres{background:var(--brand-soft);border-color:#BFE3CD}
+  .scell.off{background:repeating-linear-gradient(45deg,#fff,#fff 2px,#F1EFE9 2px,#F1EFE9 4px)}
+
+  /* mini-mapa */
+  .prof-map{padding:14px 18px 18px;border-top:1px solid var(--hair)}
+  .geomap{width:100%;height:auto;max-height:320px;background:#FCFBF8;border:1px solid var(--hair);border-radius:10px}
+  .geoframe{fill:#fff;stroke:var(--hair);stroke-width:1}
+  .grat{stroke:var(--hair2);stroke-width:1}
+  .geodot{fill:rgba(14,116,144,.45);stroke:#0E7490;stroke-width:1.2}
+  .geodot.dom{fill:rgba(14,116,144,.8);stroke:#0E7490;stroke-width:1.6}
+  .geolab{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+  .geolist{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .geocity{font-size:12px;font-family:var(--ui);background:#F2F7F8;border:1px solid #CFE3E7;border-radius:999px;padding:4px 11px;color:#0E5567}
+  .geocity b{font-family:var(--mono);color:#0E7490}
+  .geonote{font-size:11.5px;color:var(--muted);margin:10px 0 0;font-style:italic}
+  .nogeo{font-size:13px;color:var(--muted);margin:6px 0 0}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="brandband"></div>
 
   <header class="top">
-    <h1>Auditor de ausência</h1>
-    <span class="tag">logins × cadastro · contagem de faltas</span>
+    <div class="brand">
+      <span class="wordmark">metrocasa<span class="plus">+</span></span>
+      <span class="unit">comercial · acesso ao Salesforce</span>
+    </div>
+    <div class="ttl">
+      <h1>Acesso ao Salesforce</h1>
+      <span class="tag">logins × cadastro · dias sem login</span>
+    </div>
   </header>
   <p class="sub">Solte os dois CSVs, defina o período e as regras. A ferramenta cruza quem é
     consultor com o histórico de login, respeita a janela de entrada/saída de cada um e conta os
-    dias em que a pessoa <strong>não acessou</strong>. Tudo roda no seu navegador — nada sai daqui.</p>
+    dias em que a pessoa <strong>não logou no Salesforce</strong>. Tudo roda no seu navegador — nada sai daqui.</p>
 
   <div class="grid2">
     <label class="drop" id="dropBase">
@@ -225,6 +310,14 @@
     <div class="row">
       <div class="field"><label>Período — início</label><input type="date" id="dtIni"></div>
       <div class="field"><label>Período — fim</label><input type="date" id="dtFim"></div>
+      <div class="field">
+        <label>Atalhos</label>
+        <div class="presets">
+          <button type="button" data-p="mes">Este mês</button>
+          <button type="button" data-p="mespass">Mês passado</button>
+          <button type="button" data-p="30d">Últimos 30d</button>
+        </div>
+      </div>
       <div class="field">
         <label>Dias contados</label>
         <div class="seg" id="segDias">
@@ -259,7 +352,7 @@
     </div>
 
     <div class="actions">
-      <button class="run" id="btnRun" disabled>Calcular faltas</button>
+      <button class="run" id="btnRun" disabled>Calcular dias sem login</button>
       <button class="ghost" id="btnCsv" style="display:none">Baixar resumo (CSV)</button>
       <span id="status" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></span>
     </div>
@@ -271,6 +364,16 @@
     <div class="diag" id="diag"></div>
     <div id="notes"></div>
 
+    <div class="searchbar">
+      <div class="searchwrap">
+        <span class="sicon">⌕</span>
+        <input type="text" id="searchBox" placeholder="Buscar consultor por nome ou e-mail…" autocomplete="off">
+        <button class="clearbtn" id="clearSearch" title="Limpar" style="display:none">×</button>
+      </div>
+      <div id="matches" class="matches"></div>
+    </div>
+    <div id="profile" class="profile hide"></div>
+
     <div class="viewtabs">
       <button id="tabSum" aria-pressed="true">Resumo por consultor</button>
       <button id="tabGrid" aria-pressed="false">Grade por dia</button>
@@ -281,8 +384,8 @@
     <div id="viewGrid" class="hide">
       <div class="gridscroll" id="gridScroll"></div>
       <div class="legend">
-        <span><i class="sw falta"></i> falta (esperado, sem login)</span>
-        <span><i class="sw pres"></i> presente</span>
+        <span><i class="sw falta"></i> sem login (dia esperado)</span>
+        <span><i class="sw pres"></i> com login</span>
         <span><i class="sw off"></i> fora da janela / não contado</span>
       </div>
     </div>
@@ -422,6 +525,9 @@ function segVal(id){return document.getElementById(id).querySelector('button[ari
 const MAPDEF=[
   {slot:"base",key:"nomeUsuario",label:"base · Nome do usuário",cands:["Nome do usuário","Nome do usuario","username","usuario"]},
   {slot:"base",key:"horaLogin",label:"base · Horário de login",cands:["Horário de login (Fuso horário de Brasília)","Horario de login","login time","login"]},
+  {slot:"base",key:"lat",label:"base · Latitude",cands:["Latitude","lat"]},
+  {slot:"base",key:"lng",label:"base · Longitude",cands:["Longitude","long","lng","lon"]},
+  {slot:"base",key:"cidade",label:"base · Cidade",cands:["Cidade","city","municipio"]},
   {slot:"etv",key:"funcao",label:"etv · FUNÇÃO",cands:["FUNÇÃO","FUNCAO","função","funcao","cargo"]},
   {slot:"etv",key:"email",label:"etv · E-MAIL_2",cands:["E-MAIL_2","E-MAIL 2","EMAIL_2","E-MAIL","EMAIL","e-mail"]},
   {slot:"etv",key:"nome",label:"etv · NOME COMPLETO",cands:["NOME COMPLETO","nome completo","nome"]},
@@ -496,7 +602,8 @@ function compute(){
       gerente:m.gerente?(r[m.gerente]||"").trim():"",
       superint:m.superint?(r[m.superint]||"").trim():"",
       diretor:m.diretor?(r[m.diretor]||"").trim():"",
-      logins:new Set()
+      logins:new Set(),
+      geo:new Map(), geoTotal:0, geoMiss:0
     };
     consultores.push(c); emailMap.set(email,c);
   });
@@ -523,7 +630,20 @@ function compute(){
         for(const e of emailsByLen){ if(raw===e||raw.startsWith(e+".")){c=emailMap.get(e);break;} }
       }
     }
-    if(c){ c.logins.add(d.key); matchedLogins++; }
+    if(c){
+      c.logins.add(d.key); matchedLogins++;
+      if(m.lat&&m.lng){
+        const la=parseFloat(String(r[m.lat]).replace(",",".")),
+              lo=parseFloat(String(r[m.lng]).replace(",","."));
+        c.geoTotal++;
+        if(isFinite(la)&&isFinite(lo)&&!(la===0&&lo===0)&&Math.abs(la)<=90&&Math.abs(lo)<=180){
+          const gk=la.toFixed(2)+","+lo.toFixed(2);
+          let g=c.geo.get(gk);
+          if(!g){g={lat:la,lng:lo,cidade:(m.cidade?(r[m.cidade]||""):"").trim(),count:0};c.geo.set(gk,g);}
+          g.count++;
+        } else c.geoMiss++;
+      }
+    }
   });
 
   // 3) por consultor: janela, dias contados, faltas
@@ -552,12 +672,23 @@ function compute(){
       if(c.logins.has(pd.key)){ presentes++; dayState[pd.key]="pres"; }
       else dayState[pd.key]="falta";
     });
+    // maior sequência de faltas consecutivas (fim de semana/off não quebra; presença zera)
+    let run=0, maxStreak=0;
+    periodDays.forEach(pd=>{
+      const st=dayState[pd.key];
+      if(st==="falta"){run++; if(run>maxStreak)maxStreak=run;}
+      else if(st==="pres"){run=0;}
+    });
+    // último acesso dentro do período
+    let ultimo=""; c.logins.forEach(k=>{ if(k>ultimo)ultimo=k; });
     rows.push({
       nome:c.nome, email:c.email, situacao:c.situacao,
       gerente:c.gerente, superint:c.superint, diretor:c.diretor,
       entrada:c.entrada?c.entrada.key:"", saida:c.saida?c.saida.key:"",
       esperados, presentes, faltas:esperados-presentes,
       pct: esperados? Math.round(presentes/esperados*100):null,
+      ultimoAcesso:ultimo, maxStreak,
+      geo:[...c.geo.values()].sort((a,b)=>b.count-a.count), geoTotal:c.geoTotal, geoMiss:c.geoMiss,
       hadAnyLogin:c.logins.size>0, dayState
     });
   });
@@ -590,7 +721,7 @@ function render(){
   let notes="";
   if(unmatchedPct>=30){
     notes+=`<div class="note warn"><strong>${unmatchedPct}% dos logins do período não casaram com nenhum consultor.</strong>
-      Isso costuma indicar chave errada (username do Salesforce ≠ e-mail), não ausência. Tente o modo
+      Isso costuma indicar chave errada (username do Salesforce ≠ e-mail), não dias sem login reais. Tente o modo
       <em>“Username c/ sufixo”</em> antes de confiar nos números.</div>`;
   }
   if(semLogin.length){
@@ -605,26 +736,33 @@ function render(){
 
   ST.report=rollup(R.rows);
   if(ST.repMetric===undefined){ST.repMetric="taxa";ST.repDim="diretoria";}
-  renderSummary(); renderGrid(); renderReport();
+  closeProfile(); renderSummary(); renderGrid(); renderReport(); renderMatches();
 }
 function stat(n,k,flag){return `<div class="stat ${flag?'flag':''}"><div class="n">${n}</div><div class="k">${k}</div></div>`;}
+
+function matchSearch(r){
+  if(!ST.search) return true;
+  const q=norm(ST.search);
+  return norm(r.nome).includes(q) || norm(r.email).includes(q);
+}
 
 function renderSummary(){
   const R=ST.result;
   const s=ST.sort;
-  const rows=[...R.rows].sort((a,b)=>{
+  const base=R.rows.filter(matchSearch);
+  const rows=[...base].sort((a,b)=>{
     let x=a[s.k],y=b[s.k];
     if(typeof x==="string"){x=x.toLowerCase();y=(y||"").toLowerCase();return x<y?-s.dir:x>y?s.dir:0;}
     return ((x??-1)-(y??-1))*s.dir;
   });
-  const tot=R.rows.reduce((o,r)=>{o.e+=r.esperados;o.p+=r.presentes;o.f+=r.faltas;return o;},{e:0,p:0,f:0});
+  const tot=base.reduce((o,r)=>{o.e+=r.esperados;o.p+=r.presentes;o.f+=r.faltas;return o;},{e:0,p:0,f:0});
   const head=[["nome","Consultor"],["situacao","Situação"],["entrada","Entrada"],["saida","Saída"],
-    ["esperados","Esperados",1],["presentes","Presentes",1],["faltas","Faltas",1],["pct","% pres.",1]];
+    ["esperados","Esperados",1],["presentes","Com login",1],["faltas","Sem login",1],["maxStreak","Maior seq. s/ login",1],["pct","% c/ login",1]];
   let html=`<table class="summary"><thead><tr>`+
     head.map(h=>`<th class="${h[2]?'num':''}" data-k="${h[0]}">${h[1]}${ST.sort.k===h[0]?(ST.sort.dir<0?" ↓":" ↑"):""}</th>`).join("")+
     `</tr></thead><tbody>`;
   rows.forEach(r=>{
-    html+=`<tr>
+    html+=`<tr style="cursor:pointer" data-email="${escapeHtml(r.email)}">
       <td class="nome">${escapeHtml(r.nome)}</td>
       <td>${escapeHtml(r.situacao)}</td>
       <td class="num">${r.entrada||"—"}</td>
@@ -632,11 +770,12 @@ function renderSummary(){
       <td class="num">${r.esperados}</td>
       <td class="num">${r.presentes}</td>
       <td class="num"><span class="faltacell ${r.faltas>0?'hot':''}">${r.faltas}</span></td>
+      <td class="num"><span class="faltacell ${r.maxStreak>=3?'hot':''}">${r.maxStreak}</span></td>
       <td class="num"><span class="pct">${r.pct===null?"—":r.pct+"%"}</span></td>
     </tr>`;
   });
-  html+=`<tr class="totals"><td>Total</td><td></td><td></td><td></td>
-    <td class="num">${tot.e}</td><td class="num">${tot.p}</td><td class="num">${tot.f}</td>
+  html+=`<tr class="totals"><td>Total${ST.search?" (filtrado)":""}</td><td></td><td></td><td></td>
+    <td class="num">${tot.e}</td><td class="num">${tot.p}</td><td class="num">${tot.f}</td><td class="num"></td>
     <td class="num">${tot.e?Math.round(tot.p/tot.e*100):0}%</td></tr>`;
   html+=`</tbody></table>`;
   document.getElementById("viewSum").innerHTML=html;
@@ -647,6 +786,9 @@ function renderSummary(){
       renderSummary();
     });
   });
+  document.querySelectorAll("#viewSum tbody tr[data-email]").forEach(tr=>{
+    tr.addEventListener("click",()=>openProfile(tr.dataset.email));
+  });
 }
 
 function renderGrid(){
@@ -656,7 +798,7 @@ function renderGrid(){
   days.forEach(d=>{const[y,mo,dd]=d.key.split("-");html+=`<th class="${d.we?'we':''}">${dd}/${mo}</th>`;});
   html+=`</tr></thead><tbody>`;
   // ordena por faltas desc para leitura
-  const rows=[...R.rows].sort((a,b)=>b.faltas-a.faltas);
+  const rows=[...R.rows].filter(matchSearch).sort((a,b)=>b.faltas-a.faltas);
   rows.forEach(r=>{
     html+=`<tr><td class="rowh">${escapeHtml(r.nome)} <span style="color:var(--signal);font-family:var(--mono)">${r.faltas?("· "+r.faltas):""}</span></td>`;
     days.forEach(d=>{
@@ -667,6 +809,139 @@ function renderGrid(){
   });
   html+=`</tbody></table>`;
   document.getElementById("gridScroll").innerHTML=html;
+}
+
+/* ---------- busca + perfil do consultor ---------- */
+function renderMatches(){
+  const host=document.getElementById("matches");
+  const clr=document.getElementById("clearSearch");
+  if(!ST.result){host.innerHTML="";return;}
+  if(!ST.search){host.innerHTML="";clr.style.display="none";return;}
+  clr.style.display="inline-block";
+  const ms=ST.result.rows.filter(matchSearch).sort((a,b)=>b.faltas-a.faltas);
+  if(!ms.length){host.innerHTML='<span class="none">nenhum consultor encontrado</span>';return;}
+  if(ms.length===1){ openProfile(ms[0].email); }
+  host.innerHTML=ms.slice(0,30).map(r=>
+    `<span class="chip" data-email="${escapeHtml(r.email)}">${escapeHtml(r.nome)}
+      <span class="cf ${r.faltas===0?'cool':''}">${r.faltas} s/login</span></span>`).join("")
+    + (ms.length>30?`<span class="none">+${ms.length-30} mais…</span>`:"");
+  host.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>openProfile(c.dataset.email)));
+}
+
+function groupTaxa(rows){
+  const e=rows.reduce((a,r)=>a+r.esperados,0), f=rows.reduce((a,r)=>a+r.faltas,0);
+  return e?f/e:0;
+}
+
+function openProfile(email){
+  const R=ST.result; if(!R)return;
+  const r=R.rows.find(x=>x.email===email); if(!r)return;
+  const gerPeers=R.rows.filter(x=>x.diretor===r.diretor&&x.superint===r.superint&&x.gerente===r.gerente);
+  const dirPeers=R.rows.filter(x=>x.diretor===r.diretor);
+  const tMe=r.esperados?r.faltas/r.esperados:0;
+  const tGer=groupTaxa(gerPeers), tDir=groupTaxa(dirPeers);
+  const maxT=Math.max(tMe,tGer,tDir,0.0001);
+  const path=[r.diretor||"sem diretoria",r.superint||"sem superintendência",r.gerente||"sem gerência"]
+    .map(escapeHtml).join('<span class="sep">›</span>');
+  const pct=Math.round; const W=t=>Math.max(4,t/maxT*100);
+
+  let strip="";
+  R.periodDays.forEach(d=>{const st=r.dayState[d.key]||"off";
+    const[,mo,dd]=d.key.split("-");
+    strip+=`<span class="scell ${st}" title="${dd}/${mo}: ${st==='falta'?'sem login':st==='pres'?'com login':'fora da janela'}"></span>`;});
+
+  const host=document.getElementById("profile");
+  host.innerHTML=`
+    <div class="prof-top">
+      <div class="prof-id">
+        <div class="pnome">${escapeHtml(r.nome)}</div>
+        <div class="pmail">${escapeHtml(r.email)}${r.situacao?" · "+escapeHtml(r.situacao):""}</div>
+        <div class="prof-path">${path}</div>
+      </div>
+      <button class="prof-close" id="profClose">Fechar ×</button>
+    </div>
+    <div class="prof-kpis">
+      <div class="pk"><div class="n sig">${r.faltas}</div><div class="k">dias sem login</div></div>
+      <div class="pk"><div class="n">${r.presentes}/${r.esperados}</div><div class="k">com login / esperados</div></div>
+      <div class="pk"><div class="n ${tMe>=.3?'sig':'ok'}">${pct(tMe*100)}%</div><div class="k">% sem login</div></div>
+      <div class="pk"><div class="n ${r.maxStreak>=3?'sig':''}">${r.maxStreak}</div><div class="k">maior seq. sem login</div></div>
+      <div class="pk"><div class="n">${r.ultimoAcesso?r.ultimoAcesso.split("-").reverse().join("/"):"—"}</div><div class="k">último acesso</div></div>
+    </div>
+    <div class="prof-bench">
+      <div class="benchrow"><span class="bl">Este consultor</span><div class="benchtrack"><i class="me" style="width:${W(tMe)}%"></i></div><span class="bv">${pct(tMe*100)}%</span></div>
+      <div class="benchrow"><span class="bl">Média gerência</span><div class="benchtrack"><i class="avg" style="width:${W(tGer)}%"></i></div><span class="bv">${pct(tGer*100)}%</span></div>
+      <div class="benchrow"><span class="bl">Média diretoria</span><div class="benchtrack"><i class="avg" style="width:${W(tDir)}%"></i></div><span class="bv">${pct(tDir*100)}%</span></div>
+    </div>
+    <div class="prof-strip">
+      <div class="stl">linha do tempo · ${R.ini.key.split("-").reverse().join("/")} a ${R.fim.key.split("-").reverse().join("/")}</div>
+      <div class="strip">${strip}</div>
+    </div>
+    ${miniMap(r)}`;
+  host.classList.remove("hide");
+  document.getElementById("profClose").addEventListener("click",closeProfile);
+  host.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function closeProfile(){document.getElementById("profile").classList.add("hide");}
+
+/* mini-mapa de pontos (SVG, offline, auto-ajuste às coordenadas) */
+function miniMap(r){
+  const pts=(r.geo||[]).filter(p=>isFinite(p.lat)&&isFinite(p.lng));
+  if(!(r.geoTotal>0)) return ""; // colunas de geo não mapeadas
+  if(!pts.length){
+    return `<div class="prof-map"><div class="stl">localização dos logins</div>
+      <p class="nogeo">Nenhuma coordenada válida neste período${r.geoMiss?` (${r.geoMiss} logins sem geo)`:""}.</p></div>`;
+  }
+  const W=600,H=300,pad=38;
+  let minLa=Infinity,maxLa=-Infinity,minLo=Infinity,maxLo=-Infinity;
+  pts.forEach(p=>{minLa=Math.min(minLa,p.lat);maxLa=Math.max(maxLa,p.lat);minLo=Math.min(minLo,p.lng);maxLo=Math.max(maxLo,p.lng);});
+  if(maxLa-minLa<0.03){minLa-=0.03;maxLa+=0.03;}
+  if(maxLo-minLo<0.03){minLo-=0.03;maxLo+=0.03;}
+  const meanLa=(minLa+maxLa)/2, lonK=Math.cos(meanLa*Math.PI/180)||1;
+  const spanLo=(maxLo-minLo)*lonK, spanLa=(maxLa-minLa);
+  const innerW=W-2*pad, innerH=H-2*pad;
+  const s=Math.min(innerW/spanLo, innerH/spanLa);
+  const offX=pad+(innerW-spanLo*s)/2, offY=pad+(innerH-spanLa*s)/2;
+  const X=lo=>offX+(lo-minLo)*lonK*s, Y=la=>offY+(maxLa-la)*s;
+  const maxC=Math.max(...pts.map(p=>p.count));
+
+  // graticule leve
+  let grid="";
+  for(let i=0;i<=4;i++){
+    const gx=pad+innerW*i/4, gy=pad+innerH*i/4;
+    grid+=`<line x1="${gx}" y1="${pad}" x2="${gx}" y2="${H-pad}" class="grat"/>`;
+    grid+=`<line x1="${pad}" y1="${gy}" x2="${W-pad}" y2="${gy}" class="grat"/>`;
+  }
+  // pontos (ordena menor->maior para o maior ficar por cima)
+  const ordered=[...pts].sort((a,b)=>a.count-b.count);
+  let dots="";
+  ordered.forEach(p=>{
+    const cx=X(p.lng),cy=Y(p.lat), rad=5+9*Math.sqrt(p.count/maxC);
+    const dom=p.count===maxC;
+    dots+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${rad.toFixed(1)}"
+      class="geodot ${dom?'dom':''}"><title>${escapeHtml(p.cidade||"")} · ${p.count} login(s) · ${p.lat.toFixed(3)}, ${p.lng.toFixed(3)}</title></circle>`;
+  });
+  // rótulos das 4 localidades mais frequentes
+  let labels="";
+  pts.slice(0,4).forEach(p=>{
+    if(!p.cidade) return;
+    const cx=X(p.lng),cy=Y(p.lat);
+    labels+=`<text x="${(cx+9).toFixed(1)}" y="${(cy+4).toFixed(1)}" class="geolab">${escapeHtml(p.cidade)}</text>`;
+  });
+  // lista por cidade
+  const byCity=new Map();
+  pts.forEach(p=>{const k=p.cidade||"(sem cidade)"; byCity.set(k,(byCity.get(k)||0)+p.count);});
+  const cityList=[...byCity.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6)
+    .map(([c,n])=>`<span class="geocity">${escapeHtml(c)} <b>${n}</b></span>`).join("");
+
+  return `<div class="prof-map">
+    <div class="stl">localização dos logins · ${pts.length} ${pts.length>1?'pontos':'ponto'}${r.geoMiss?` · ${r.geoMiss} sem geo`:""}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="geomap" preserveAspectRatio="xMidYMid meet">
+      <rect x="${pad}" y="${pad}" width="${W-2*pad}" height="${H-2*pad}" class="geoframe"/>
+      ${grid}${dots}${labels}
+    </svg>
+    <div class="geolist">${cityList}</div>
+    <p class="geonote">Localização aproximada por IP (cidade do provedor), não GPS. VPN e rede móvel podem deslocar o ponto.</p>
+  </div>`;
 }
 
 /* ---------- rollup de hierarquia ---------- */
@@ -725,8 +1000,8 @@ function renderReport(){
     <div class="repctrls">
       <span style="font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">métrica</span>
       <div class="seg" id="segMetric">
-        <button data-v="taxa" aria-pressed="${metric==='taxa'}">Taxa de falta</button>
-        <button data-v="abs" aria-pressed="${metric==='abs'}">Faltas absolutas</button>
+        <button data-v="taxa" aria-pressed="${metric==='taxa'}">% sem login</button>
+        <button data-v="abs" aria-pressed="${metric==='abs'}">Dias sem login</button>
       </div>
       <span style="font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-left:6px">ranking por</span>
       <div class="seg" id="segDim">
@@ -741,30 +1016,30 @@ function renderReport(){
   // KPIs
   h+=`<div class="kpis">
     <div class="kpi"><div class="n">${rep.totals.nConsult}</div><div class="k">consultores</div></div>
-    <div class="kpi"><div class="n sig">${rep.totals.faltas.toLocaleString('pt-BR')}</div><div class="k">faltas no total</div></div>
+    <div class="kpi"><div class="n sig">${rep.totals.faltas.toLocaleString('pt-BR')}</div><div class="k">dias sem login no total</div></div>
     <div class="kpi"><div class="n">${rep.totals.esperados.toLocaleString('pt-BR')}</div><div class="k">dias esperados</div></div>
-    <div class="kpi"><div class="n sig">${Math.round(rep.totals.taxa*100)}%</div><div class="k">taxa de falta global</div></div>
+    <div class="kpi"><div class="n sig">${Math.round(rep.totals.taxa*100)}%</div><div class="k">% sem login global</div></div>
     <div class="kpi"><div class="n">${rep.diretorias.length}</div><div class="k">diretorias</div></div>
   </div>`;
 
   // destaques
   h+=`<div class="callouts">`;
-  if(piorDir)h+=`<div class="callout bad"><div class="ckk">Diretoria mais ausente</div>
+  if(piorDir)h+=`<div class="callout bad"><div class="ckk">Diretoria com mais dias sem login</div>
     <div class="cv">${escapeHtml(piorDir.name)}</div>
-    <div class="cm"><span class="big">${Math.round(piorDir.taxa*100)}%</span> de falta · ${piorDir.faltas} faltas · ${piorDir.nConsult} consultores</div></div>`;
-  if(piorGer)h+=`<div class="callout bad"><div class="ckk">Gerência mais ausente</div>
+    <div class="cm"><span class="big">${Math.round(piorDir.taxa*100)}%</span> sem login · ${piorDir.faltas} dias · ${piorDir.nConsult} consultores</div></div>`;
+  if(piorGer)h+=`<div class="callout bad"><div class="ckk">Gerência com mais dias sem login</div>
     <div class="cv">${escapeHtml(piorGer.name)}</div>
-    <div class="cm"><span class="big">${Math.round(piorGer.taxa*100)}%</span> de falta · sob ${escapeHtml(piorGer.sub)} · ${piorGer.nConsult} consultores</div></div>`;
-  if(melhorDir)h+=`<div class="callout good"><div class="ckk">Diretoria mais presente</div>
+    <div class="cm"><span class="big">${Math.round(piorGer.taxa*100)}%</span> sem login · sob ${escapeHtml(piorGer.sub)} · ${piorGer.nConsult} consultores</div></div>`;
+  if(melhorDir)h+=`<div class="callout good"><div class="ckk">Diretoria com mais acesso</div>
     <div class="cv">${escapeHtml(melhorDir.name)}</div>
-    <div class="cm"><span class="big">${Math.round(melhorDir.taxa*100)}%</span> de falta · ${melhorDir.nConsult} consultores</div></div>`;
+    <div class="cm"><span class="big">${Math.round(melhorDir.taxa*100)}%</span> sem login · ${melhorDir.nConsult} consultores</div></div>`;
   h+=`</div>`;
 
   // ranking
   const dimLabel={diretoria:"diretoria",superint:"superintendência",gerencia:"gerência"}[dim];
   const list=rep.flat[dim].slice().sort((a,b)=>val(b)-val(a)).slice(0,12);
   const maxV=Math.max(...list.map(val),metric==='taxa'?0.0001:1);
-  h+=`<div class="secttl">Ranking por ${dimLabel} — ${metric==='taxa'?'taxa de falta':'faltas absolutas'}</div><div class="rank">`;
+  h+=`<div class="secttl">Ranking por ${dimLabel} — ${metric==='taxa'?'% sem login':'dias sem login'}</div><div class="rank">`;
   list.forEach(n=>{
     h+=`<div class="rankrow">
       <div class="lab">${escapeHtml(n.name)}<small>${escapeHtml(n.sub)}</small></div>
@@ -776,7 +1051,7 @@ function renderReport(){
   // árvore drill-down
   h+=`<div class="secttl">Drill-down · Diretoria › Superintendência › Gerência › Consultor</div>`;
   h+=`<div class="tree">`+rep.diretorias.map(d=>nodeHtml(d,1,maxGerFalta)).join("")+`</div>`;
-  h+=`<p style="font-size:12px;color:var(--muted);margin-top:10px">A barra no drill-down é proporcional às faltas absolutas; o % ao lado é a taxa de falta do grupo. Gerências com 1 consultor aparecem no drill mas são ignoradas no destaque "mais ausente" para não virar ruído.</p>`;
+  h+=`<p style="font-size:12px;color:var(--muted);margin-top:10px">A barra no drill-down é proporcional aos dias sem login; o % ao lado é a taxa de dias sem login do grupo. Gerências com 1 consultor aparecem no drill, mas são ignoradas no destaque "com mais dias sem login" para não virar ruído.</p>`;
 
   host.innerHTML=h;
   wireReportControls();
@@ -794,7 +1069,7 @@ function nodeHtml(n,level,maxGer){
         <span class="nname">${escapeHtml(n.name)}</span>
         <span class="nbar"><i style="width:${barW}%"></i></span>
         <span class="ntaxa ${hot}">${taxaTxt}</span>
-        <span class="ncount">${n.faltas}f · ${n.nConsult}p</span>
+        <span class="ncount">${n.faltas} s/login · ${n.nConsult}p</span>
       </summary>
       <div class="kids">${kids}</div>
     </details>`;
@@ -807,7 +1082,7 @@ function nodeHtml(n,level,maxGer){
       <span class="lname">${escapeHtml(c.nome)}</span>
       <span class="nbar"><i style="width:${Math.min(100,c.faltas/Math.max(1,maxGer)*100)}%"></i></span>
       <span class="ntaxa ${ch}">${Math.round(c.taxa*100)}%</span>
-      <span class="lfalta ${ch}">${c.faltas}f</span></div>`;
+      <span class="lfalta ${ch}">${c.faltas} s/login</span></div>`;
   }).join("");
   return `<details class="node lv3">
     <summary>
@@ -815,7 +1090,7 @@ function nodeHtml(n,level,maxGer){
       <span class="nname">${escapeHtml(n.name)}</span>
       <span class="nbar"><i style="width:${barW}%"></i></span>
       <span class="ntaxa ${hot}">${taxaTxt}</span>
-      <span class="ncount">${n.faltas}f · ${n.nConsult}p</span>
+      <span class="ncount">${n.faltas} s/login · ${n.nConsult}p</span>
     </summary>
     <div class="kids">${leaves}</div>
   </details>`;
@@ -837,7 +1112,7 @@ function exportReport(){
   const blob=new Blob([doc],{type:"text/html;charset=utf-8"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="relatorio_faltas_"+meta.ini+"_a_"+meta.fim+".html";
+  a.download="relatorio_acesso_"+meta.ini+"_a_"+meta.fim+".html";
   a.click();
 }
 
@@ -845,15 +1120,15 @@ function buildStandalone(rep,meta){
   const data=JSON.stringify({rep,meta});
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Relatório de faltas · ${meta.ini} a ${meta.fim}</title>
+<title>Relatório de acesso ao Salesforce · ${meta.ini} a ${meta.fim}</title>
 <style>
-:root{--ground:#FBFAF8;--panel:#fff;--ink:#1A1D21;--muted:#6B7178;--hair:#E6E3DC;--hair2:#F0EEE8;--signal:#C2410C;--ok:#15803D;
+:root{--ground:#F4F7F3;--panel:#fff;--ink:#101814;--muted:#5E6B62;--hair:#E2E8E0;--hair2:#EEF2EC;--brand:#06A04A;--brand-d:#04733A;--brand-soft:#E3F5EA;--signal:#E0342A;--ok:#06A04A;
 --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.5}
-.wrap{max-width:1080px;margin:0 auto;padding:34px 22px 80px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px 80px}.brandband{height:5px;background:linear-gradient(90deg,var(--brand),var(--brand-d));margin:0 -22px 26px}.brandhd{display:flex;flex-direction:column;gap:2px;margin-bottom:14px}.wordmark{font-size:21px;font-weight:800;letter-spacing:-.035em;color:var(--ink)}.wordmark .plus{color:var(--brand)}.brandhd .unit{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-d)}
 h1{font-size:22px;font-weight:650;letter-spacing:-.02em;margin:0 0 4px}
 .meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:24px}
-.bar{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:22px}
+.bar{border-bottom:1px solid var(--hair);padding-bottom:12px;margin-bottom:22px}
 .ctr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
 .ctr span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 .seg{display:inline-flex;border:1px solid var(--hair);border-radius:7px;overflow:hidden}
@@ -864,7 +1139,7 @@ h1{font-size:22px;font-weight:650;letter-spacing:-.02em;margin:0 0 4px}
 .kpi .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:22px}
 .callout{border:1px solid var(--hair);border-radius:10px;padding:14px 16px;background:#fff}
-.callout.bad{border-color:#F2C5A8;background:linear-gradient(180deg,#fff,#FFF7F2)}.callout.good{border-color:#BFE0C5;background:linear-gradient(180deg,#fff,#F4FBF5)}
+.callout.bad{border-color:#F3C2BD;background:linear-gradient(180deg,#fff,#FFF5F4)}.callout.good{border-color:#BFE0C5;background:linear-gradient(180deg,#fff,#F4FBF5)}
 .callout .ckk{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .callout .cv{font-size:17px;font-weight:650;margin-top:4px}.callout .cm{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px}
 .callout .big{font-family:var(--mono);font-weight:700}.callout.bad .big{color:var(--signal)}.callout.good .big{color:var(--ok)}
@@ -875,12 +1150,12 @@ h1{font-size:22px;font-weight:650;letter-spacing:-.02em;margin:0 0 4px}
 .rankrow .lab{font-size:13px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rankrow .lab small{display:block;font-weight:400;color:var(--muted);font-family:var(--mono);font-size:10.5px}
 .bartrack{background:var(--hair2);border-radius:5px;height:22px;overflow:hidden}
-.barfill{height:100%;background:linear-gradient(90deg,#E2632A,var(--signal));border-radius:5px;min-width:2px;transition:width .4s}
+.barfill{height:100%;background:linear-gradient(90deg,#F0766F,var(--signal));border-radius:5px;min-width:2px;transition:width .4s}
 .rankrow .vv{font-family:var(--mono);font-weight:600;font-size:13px;text-align:right;min-width:62px}
 .tree{border:1px solid var(--hair);border-radius:10px;overflow:hidden;background:#fff}
 details.node{border-top:1px solid var(--hair2)}details.node:first-child{border-top:0}
 details.node>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:18px minmax(140px,1fr) 120px 90px 70px;gap:10px;align-items:center;padding:9px 12px}
-details.node>summary::-webkit-details-marker{display:none}details.node>summary:hover{background:#FBFAF6}
+details.node>summary::-webkit-details-marker{display:none}details.node>summary:hover{background:#F4F9F5}
 .caret{font-family:var(--mono);color:var(--muted);transition:transform .15s;font-size:12px}details[open]>summary .caret{transform:rotate(90deg)}
 .nname{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lv2 .nname{font-weight:550;font-size:13px}.lv3 .nname{font-weight:500;font-size:12.5px}
@@ -892,14 +1167,16 @@ details.node>summary::-webkit-details-marker{display:none}details.node>summary:h
 .leaf .lname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaf .lfalta{font-family:var(--mono);text-align:right}.leaf .lfalta.hot{color:var(--signal);font-weight:600}
 .foot{margin-top:36px;font-size:12px;color:var(--muted);border-top:1px solid var(--hair);padding-top:14px}
 </style></head><body><div class="wrap">
-<div class="bar"><h1>Relatório de ausência · comercial</h1>
+<div class="brandband"></div>
+<div class="brandhd"><span class="wordmark">metrocasa<span class="plus">+</span></span><span class="unit">comercial · acesso ao Salesforce</span></div>
+<div class="bar"><h1>Relatório de acesso ao Salesforce</h1>
 <div class="meta">período ${meta.ini} → ${meta.fim} · ${meta.modo} · gerado em ${meta.gerado}</div></div>
 <div class="ctr">
-<span>métrica</span><div class="seg" id="segMetric"><button data-v="taxa" aria-pressed="true">Taxa de falta</button><button data-v="abs" aria-pressed="false">Faltas absolutas</button></div>
+<span>métrica</span><div class="seg" id="segMetric"><button data-v="taxa" aria-pressed="true">% sem login</button><button data-v="abs" aria-pressed="false">Dias sem login</button></div>
 <span style="margin-left:6px">ranking por</span><div class="seg" id="segDim"><button data-v="diretoria" aria-pressed="true">Diretoria</button><button data-v="superint" aria-pressed="false">Superint.</button><button data-v="gerencia" aria-pressed="false">Gerência</button></div>
 </div>
 <div id="app"></div>
-<p class="foot">Falta = dia contado dentro da janela ativa do consultor sem nenhum login. Ranking padrão por taxa de falta (faltas ÷ dias esperados) para não premiar times maiores. Arquivo autônomo — abre em qualquer navegador, offline.</p>
+<p class="foot">"Dia sem login" = dia contado dentro da janela ativa do consultor em que não houve nenhum acesso ao Salesforce. Mede acesso ao CRM, não trabalho — o corretor pode ter atuado sem abrir o sistema. Ranking padrão por taxa (dias sem login ÷ dias esperados) para não premiar times maiores. Arquivo autônomo, offline.</p>
 </div>
 <script>
 const DATA=${data};
@@ -917,16 +1194,16 @@ function nodeHtml(n,level){
     return '<details class="node lv'+level+'" '+((level===1&&n.taxa>=0.3)?'open':'')+'><summary>'+
       '<span class="caret">▶</span><span class="nname">'+esc(n.name)+'</span>'+
       '<span class="nbar"><i style="width:'+w+'%"></i></span><span class="ntaxa '+hot+'">'+tx+'</span>'+
-      '<span class="ncount">'+n.faltas+'f · '+n.nConsult+'p</span></summary><div class="kids">'+kids+'</div></details>';
+      '<span class="ncount">'+n.faltas+' s/login · '+n.nConsult+'p</span></summary><div class="kids">'+kids+'</div></details>';
   }
   const w=Math.min(100,n.faltas/maxGer*100);
   const leaves=n.consultores.map(c=>{const ch=c.taxa>=0.3?'hot':'';
     return '<div class="leaf"><span></span><span class="lname">'+esc(c.nome)+'</span>'+
       '<span class="nbar"><i style="width:'+Math.min(100,c.faltas/maxGer*100)+'%"></i></span>'+
-      '<span class="ntaxa '+ch+'">'+Math.round(c.taxa*100)+'%</span><span class="lfalta '+ch+'">'+c.faltas+'f</span></div>';}).join("");
+      '<span class="ntaxa '+ch+'">'+Math.round(c.taxa*100)+'%</span><span class="lfalta '+ch+'">'+c.faltas+' s/login</span></div>';}).join("");
   return '<details class="node lv3"><summary><span class="caret">▶</span><span class="nname">'+esc(n.name)+'</span>'+
     '<span class="nbar"><i style="width:'+w+'%"></i></span><span class="ntaxa '+hot+'">'+tx+'</span>'+
-    '<span class="ncount">'+n.faltas+'f · '+n.nConsult+'p</span></summary><div class="kids">'+leaves+'</div></details>';
+    '<span class="ncount">'+n.faltas+' s/login · '+n.nConsult+'p</span></summary><div class="kids">'+leaves+'</div></details>';
 }
 function render(){
   const worst=a=>a.filter(x=>x.esperados>0).slice().sort((p,q)=>q.taxa-p.taxa)[0];
@@ -934,19 +1211,19 @@ function render(){
   const pd=worst(rep.flat.diretoria),pg=worst(rep.flat.gerencia.filter(g=>g.nConsult>=2))||worst(rep.flat.gerencia),md=best(rep.flat.diretoria);
   let h='<div class="kpis">'+
     '<div class="kpi"><div class="n">'+rep.totals.nConsult+'</div><div class="k">consultores</div></div>'+
-    '<div class="kpi"><div class="n sig">'+rep.totals.faltas.toLocaleString('pt-BR')+'</div><div class="k">faltas no total</div></div>'+
+    '<div class="kpi"><div class="n sig">'+rep.totals.faltas.toLocaleString('pt-BR')+'</div><div class="k">dias sem login no total</div></div>'+
     '<div class="kpi"><div class="n">'+rep.totals.esperados.toLocaleString('pt-BR')+'</div><div class="k">dias esperados</div></div>'+
-    '<div class="kpi"><div class="n sig">'+Math.round(rep.totals.taxa*100)+'%</div><div class="k">taxa global</div></div>'+
+    '<div class="kpi"><div class="n sig">'+Math.round(rep.totals.taxa*100)+'%</div><div class="k">% sem login global</div></div>'+
     '<div class="kpi"><div class="n">'+rep.diretorias.length+'</div><div class="k">diretorias</div></div></div>';
   h+='<div class="callouts">';
-  if(pd)h+='<div class="callout bad"><div class="ckk">Diretoria mais ausente</div><div class="cv">'+esc(pd.name)+'</div><div class="cm"><span class="big">'+Math.round(pd.taxa*100)+'%</span> · '+pd.faltas+' faltas · '+pd.nConsult+' consultores</div></div>';
-  if(pg)h+='<div class="callout bad"><div class="ckk">Gerência mais ausente</div><div class="cv">'+esc(pg.name)+'</div><div class="cm"><span class="big">'+Math.round(pg.taxa*100)+'%</span> · sob '+esc(pg.sub)+' · '+pg.nConsult+' consultores</div></div>';
-  if(md)h+='<div class="callout good"><div class="ckk">Diretoria mais presente</div><div class="cv">'+esc(md.name)+'</div><div class="cm"><span class="big">'+Math.round(md.taxa*100)+'%</span> · '+md.nConsult+' consultores</div></div>';
+  if(pd)h+='<div class="callout bad"><div class="ckk">Diretoria com mais dias sem login</div><div class="cv">'+esc(pd.name)+'</div><div class="cm"><span class="big">'+Math.round(pd.taxa*100)+'%</span> · '+pd.faltas+' dias sem login · '+pd.nConsult+' consultores</div></div>';
+  if(pg)h+='<div class="callout bad"><div class="ckk">Gerência com mais dias sem login</div><div class="cv">'+esc(pg.name)+'</div><div class="cm"><span class="big">'+Math.round(pg.taxa*100)+'%</span> · sob '+esc(pg.sub)+' · '+pg.nConsult+' consultores</div></div>';
+  if(md)h+='<div class="callout good"><div class="ckk">Diretoria com mais acesso</div><div class="cv">'+esc(md.name)+'</div><div class="cm"><span class="big">'+Math.round(md.taxa*100)+'%</span> · '+md.nConsult+' consultores</div></div>';
   h+='</div>';
   const dl={diretoria:"diretoria",superint:"superintendência",gerencia:"gerência"}[dim];
   const list=rep.flat[dim].slice().sort((a,b)=>val(b)-val(a)).slice(0,12);
   const mv=Math.max.apply(null,list.map(val).concat([metric==='taxa'?0.0001:1]));
-  h+='<div class="secttl">Ranking por '+dl+' — '+(metric==='taxa'?'taxa de falta':'faltas absolutas')+'</div><div class="rank">';
+  h+='<div class="secttl">Ranking por '+dl+' — '+(metric==='taxa'?'% sem login':'dias sem login')+'</div><div class="rank">';
   list.forEach(n=>{h+='<div class="rankrow"><div class="lab">'+esc(n.name)+'<small>'+esc(n.sub)+'</small></div>'+
     '<div class="bartrack"><div class="barfill" style="width:'+Math.max(2,val(n)/mv*100)+'%"></div></div><div class="vv">'+fmt(n)+'</div></div>';});
   h+='</div>';
@@ -976,7 +1253,7 @@ function switchView(v){
 /* ---------- export ---------- */
 document.getElementById("btnCsv").addEventListener("click",()=>{
   const R=ST.result; if(!R)return;
-  const head=["Consultor","Email","Situacao","Entrada","Saida","Dias esperados","Presentes","Faltas","% presenca"];
+  const head=["Consultor","Email","Situacao","Entrada","Saida","Dias esperados","Com login","Dias sem login","% com login"];
   const lines=[head.join(";")];
   [...R.rows].sort((a,b)=>b.faltas-a.faltas).forEach(r=>{
     lines.push([r.nome,r.email,r.situacao,r.entrada,r.saida,r.esperados,r.presentes,r.faltas,r.pct===null?"":r.pct].
@@ -985,7 +1262,7 @@ document.getElementById("btnCsv").addEventListener("click",()=>{
   const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="faltas_"+R.ini.key+"_a_"+R.fim.key+".csv";
+  a.download="sem_login_"+R.ini.key+"_a_"+R.fim.key+".csv";
   a.click();
 });
 
@@ -1005,6 +1282,30 @@ document.getElementById("btnRun").addEventListener("click",()=>{
   document.getElementById("dtIni").value=dateToKey(first);
   document.getElementById("dtFim").value=dateToKey(now);
 })();
+
+/* busca */
+ST.search="";
+document.getElementById("searchBox").addEventListener("input",e=>{
+  ST.search=e.target.value.trim();
+  renderMatches(); renderSummary(); renderGrid();
+});
+document.getElementById("clearSearch").addEventListener("click",()=>{
+  ST.search=""; document.getElementById("searchBox").value="";
+  renderMatches(); renderSummary(); renderGrid(); closeProfile();
+});
+
+/* presets de período */
+document.querySelectorAll(".presets button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    const now=new Date(); let ini,fim;
+    if(b.dataset.p==="mes"){ ini=new Date(now.getFullYear(),now.getMonth(),1); fim=now; }
+    else if(b.dataset.p==="mespass"){ ini=new Date(now.getFullYear(),now.getMonth()-1,1); fim=new Date(now.getFullYear(),now.getMonth(),0); }
+    else { fim=now; ini=new Date(now); ini.setDate(ini.getDate()-29); }
+    document.getElementById("dtIni").value=dateToKey(ini);
+    document.getElementById("dtFim").value=dateToKey(fim);
+    if(ST.base&&ST.etv) document.getElementById("btnRun").click();
+  });
+});
 </script>
 </body>
 </html>
