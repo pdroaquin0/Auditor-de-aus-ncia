@@ -233,6 +233,13 @@
   .prof-path{font-size:12px;color:var(--muted);margin-top:7px}
   .prof-path b{color:var(--ink);font-weight:600}
   .prof-path .sep{color:var(--hair);margin:0 6px}
+  .prof-src{font-size:12px;color:var(--muted);margin-top:6px}
+  .prof-src b{color:var(--ink);font-family:var(--mono)}
+  .prof-src.warn{color:#8A1F18}
+  .efmark{color:var(--brand-d);font-weight:700;margin-left:3px;cursor:help}
+  .novobadge{font-family:var(--ui);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--brand-d);background:var(--brand-soft);border:1px solid #BFE3CD;border-radius:999px;
+    padding:1px 6px;margin-left:6px;cursor:help;vertical-align:1px}
   .prof-close{border:1px solid var(--hair);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;
     font-size:12px;color:var(--muted)}
   .prof-close:hover{border-color:var(--ink);color:var(--ink)}
@@ -488,6 +495,25 @@ function keyToDate(k){const[y,m,d]=k.split("-").map(Number);return new Date(y,m-
 function dateToKey(dt){return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");}
 function dowMonFri(dt){const w=dt.getDay();return w>=1&&w<=5;}
 
+/* parser de coordenada tolerante: corrige decimal perdido na exportação
+   (ex.: "-236.293.000.000..." => -23.6293). Reescala por 10 até caber na faixa. */
+function parseCoord(raw, bound){
+  if(raw==null) return NaN;
+  let s=String(raw).trim(); if(!s) return NaN;
+  const neg=/^-/.test(s);
+  s=s.replace(/[^0-9.,]/g,"");
+  const dots=(s.match(/\./g)||[]).length, commas=(s.match(/,/g)||[]).length;
+  let val;
+  if(commas===1 && dots===0) val=parseFloat(s.replace(",","."));   // vírgula decimal
+  else if(dots===1 && commas===0) val=parseFloat(s);               // ponto decimal
+  else val=parseFloat(s.replace(/[.,]/g,""));                       // separadores quebrados -> inteiro
+  if(!isFinite(val)) return NaN;
+  if(neg) val=-Math.abs(val);
+  let guard=0;
+  while(Math.abs(val)>bound && guard++<60) val/=10;                 // reescala até faixa válida
+  return val;
+}
+
 /* ---------- UI: drops ---------- */
 function wireDrop(dropId,inputId,nameId,metaId,slot){
   const drop=document.getElementById(dropId), inp=document.getElementById(inputId);
@@ -537,6 +563,9 @@ const MAPDEF=[
   {slot:"etv",key:"gerente",label:"etv · Gerente",cands:["Gerente","gerencia","gerência"]},
   {slot:"etv",key:"superint",label:"etv · Superint.",cands:["Superint.","Superint","Superintendente","superintendencia","superintendência"]},
   {slot:"etv",key:"diretor",label:"etv · Diretor",cands:["Diretor","Diretoria"]},
+  {slot:"etv",key:"virouCor",label:"etv · Virou corretor",cands:["DATA QUE VIROU CORRETOR","data virou corretor","virou corretor"]},
+  {slot:"etv",key:"virouGer",label:"etv · Virou gerente",cands:["DATA QUE VIROU GERENTE","data virou gerente","virou gerente"]},
+  {slot:"etv",key:"virouSup",label:"etv · Virou superint.",cands:["DATA QUE VIROU SUPERINTENDENTE","data virou superintendente","virou superintendente"]},
 ];
 function tryAutoMap(){
   if(!ST.base&&!ST.etv) return;
@@ -594,9 +623,20 @@ function compute(){
     const email=(r[m.email]||"").toLowerCase().trim();
     if(!email) return;
     if(emailMap.has(email)) return; // distinct por chave
+    const entradaCad=m.entrada?parseDate(r[m.entrada]):null;
+    const dCor=m.virouCor?parseDate(r[m.virouCor]):null;
+    const dGer=m.virouGer?parseDate(r[m.virouGer]):null;
+    const dSup=m.virouSup?parseDate(r[m.virouSup]):null;
+    // início efetivo = transição mais recente entre entrada e viradas de cargo
+    const cands=[];
+    if(entradaCad) cands.push({d:entradaCad,l:"entrada"});
+    if(dCor) cands.push({d:dCor,l:"virou corretor"});
+    if(dGer) cands.push({d:dGer,l:"virou gerente"});
+    if(dSup) cands.push({d:dSup,l:"virou superintendente"});
+    let ef=null; cands.forEach(x=>{ if(!ef||x.d.key>ef.d.key) ef=x; });
     const c={
       email, nome:r[m.nome]||email,
-      entrada:m.entrada?parseDate(r[m.entrada]):null,
+      entradaCad, entrada:ef?ef.d:null, entradaFonte:ef?ef.l:"",
       saida:m.saida?parseDate(r[m.saida]):null,
       situacao:m.situacao?(r[m.situacao]||""):"",
       gerente:m.gerente?(r[m.gerente]||"").trim():"",
@@ -633,8 +673,7 @@ function compute(){
     if(c){
       c.logins.add(d.key); matchedLogins++;
       if(m.lat&&m.lng){
-        const la=parseFloat(String(r[m.lat]).replace(",",".")),
-              lo=parseFloat(String(r[m.lng]).replace(",","."));
+        const la=parseCoord(r[m.lat],90), lo=parseCoord(r[m.lng],180);
         c.geoTotal++;
         if(isFinite(la)&&isFinite(lo)&&!(la===0&&lo===0)&&Math.abs(la)<=90&&Math.abs(lo)<=180){
           const gk=la.toFixed(2)+","+lo.toFixed(2);
@@ -684,7 +723,9 @@ function compute(){
     rows.push({
       nome:c.nome, email:c.email, situacao:c.situacao,
       gerente:c.gerente, superint:c.superint, diretor:c.diretor,
-      entrada:c.entrada?c.entrada.key:"", saida:c.saida?c.saida.key:"",
+      entrada:c.entrada?c.entrada.key:"", entradaCad:c.entradaCad?c.entradaCad.key:"",
+      entradaFonte:c.entradaFonte, novo:(esperados>0&&esperados<5),
+      saida:c.saida?c.saida.key:"",
       esperados, presentes, faltas:esperados-presentes,
       pct: esperados? Math.round(presentes/esperados*100):null,
       ultimoAcesso:ultimo, maxStreak,
@@ -765,7 +806,7 @@ function renderSummary(){
     html+=`<tr style="cursor:pointer" data-email="${escapeHtml(r.email)}">
       <td class="nome">${escapeHtml(r.nome)}</td>
       <td>${escapeHtml(r.situacao)}</td>
-      <td class="num">${r.entrada||"—"}</td>
+      <td class="num">${r.entrada||"—"}${r.entradaFonte&&r.entradaFonte!=="entrada"?`<span class="efmark" title="início ajustado para a data de &quot;${r.entradaFonte}&quot;${r.entradaCad?` · cadastro: ${r.entradaCad}`:""}">↑</span>`:""}${r.novo?`<span class="novobadge" title="poucos dias esperados no período — amostra pequena, % pouco confiável">novo</span>`:""}</td>
       <td class="num">${r.saida||"—"}</td>
       <td class="num">${r.esperados}</td>
       <td class="num">${r.presentes}</td>
@@ -857,6 +898,8 @@ function openProfile(email){
         <div class="pnome">${escapeHtml(r.nome)}</div>
         <div class="pmail">${escapeHtml(r.email)}${r.situacao?" · "+escapeHtml(r.situacao):""}</div>
         <div class="prof-path">${path}</div>
+        ${r.entrada?`<div class="prof-src">início considerado: <b>${r.entrada.split("-").reverse().join("/")}</b>${r.entradaFonte&&r.entradaFonte!=="entrada"?` · por "${escapeHtml(r.entradaFonte)}" (cadastro: ${r.entradaCad?r.entradaCad.split("-").reverse().join("/"):"—"})`:""}</div>`:""}
+        ${r.novo?`<div class="prof-src warn">amostra pequena — poucos dias esperados no período; o % tem baixa confiabilidade.</div>`:""}
       </div>
       <button class="prof-close" id="profClose">Fechar ×</button>
     </div>
@@ -1253,10 +1296,10 @@ function switchView(v){
 /* ---------- export ---------- */
 document.getElementById("btnCsv").addEventListener("click",()=>{
   const R=ST.result; if(!R)return;
-  const head=["Consultor","Email","Situacao","Entrada","Saida","Dias esperados","Com login","Dias sem login","% com login"];
+  const head=["Consultor","Email","Situacao","Inicio considerado","Inicio por","Entrada cadastro","Saida","Dias esperados","Com login","Dias sem login","% com login","Amostra pequena"];
   const lines=[head.join(";")];
   [...R.rows].sort((a,b)=>b.faltas-a.faltas).forEach(r=>{
-    lines.push([r.nome,r.email,r.situacao,r.entrada,r.saida,r.esperados,r.presentes,r.faltas,r.pct===null?"":r.pct].
+    lines.push([r.nome,r.email,r.situacao,r.entrada,r.entradaFonte,r.entradaCad,r.saida,r.esperados,r.presentes,r.faltas,r.pct===null?"":r.pct,r.novo?"sim":""].
       map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";"));
   });
   const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
