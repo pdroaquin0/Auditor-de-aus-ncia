@@ -2,9 +2,19 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Metrocasa · Acesso ao Salesforce</title>
+<meta name="theme-color" content="#C8102E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Acesso SF">
 <style>
   :root{
     --ground:#F7F5F1; --panel:#FFFFFF; --ink:#1A1613; --muted:#6E665D;
@@ -36,6 +46,10 @@
     text-transform:uppercase;letter-spacing:.16em}
   .confid{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
     color:var(--brand);border:1px solid var(--brand);border-radius:3px;padding:2px 7px;margin-top:8px}
+  .installbtn{margin-top:10px;font-family:var(--ui);font-size:12.5px;font-weight:600;background:var(--brand);
+    color:#fff;border:0;border-radius:8px;padding:8px 15px;cursor:pointer;
+    box-shadow:0 8px 18px -8px rgba(200,16,46,.55)}
+  .installbtn:hover{background:var(--brand-d)}
   .sub{color:var(--muted);font-size:13.5px;margin:14px 0 30px;max-width:64ch;line-height:1.65}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -310,6 +324,7 @@
       <h1>Acesso ao Salesforce</h1>
       <span class="tag">logins × cadastro · dias sem login</span>
       <div><span class="confid">Confidencial · uso interno</span></div>
+      <div><button class="installbtn" id="installBtn" style="display:none">⬇ Instalar app</button></div>
     </div>
   </header>
   <p class="sub">Solte os dois CSVs, defina o período e as regras. A ferramenta cruza quem é
@@ -1414,6 +1429,22 @@ document.querySelectorAll(".presets button").forEach(b=>{
     if(ST.base&&ST.etv) document.getElementById("btnRun").click();
   });
 });
+</script>
+<script>
+/* PWA: service worker + botão de instalar */
+(function(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+  var deferred=null, btn=document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; if(btn) btn.style.display='inline-block'; });
+  if(btn) btn.addEventListener('click',function(){
+    if(!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.finally(function(){ deferred=null; btn.style.display='none'; });
+  });
+  window.addEventListener('appinstalled',function(){ if(btn) btn.style.display='none'; });
+})();
 </script>
 </body>
 </html>
