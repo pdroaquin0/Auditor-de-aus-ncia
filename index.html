@@ -4,17 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Metrocasa · Acesso ao Salesforce</title>
-<meta name="theme-color" content="#C8102E">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Acesso SF">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGZpbGw9IiNFMTFCMkMiLz4KPGcgZmlsbD0iI2ZmZmZmZiI+CjxyZWN0IHg9IjEzNCIgeT0iMjY2IiB3aWR0aD0iMjQ0IiBoZWlnaHQ9IjgwIiByeD0iNDAiLz4KPGNpcmNsZSBjeD0iMTc0IiBjeT0iMjg2IiByPSI1MCIvPgo8Y2lyY2xlIGN4PSIyMjgiIGN5PSIyNDgiIHI9IjY2Ii8+CjxjaXJjbGUgY3g9IjI5NiIgY3k9IjI0MCIgcj0iNzQiLz4KPGNpcmNsZSBjeD0iMjc4IiBjeT0iMjcyIiByPSI2MCIvPgo8Y2lyY2xlIGN4PSIzMzQiIGN5PSIyODgiIHI9IjU0Ii8+CjwvZz4KPC9zdmc+Cg==">
 <style>
   :root{
     --ground:#F7F5F1; --panel:#FFFFFF; --ink:#1A1613; --muted:#6E665D;
@@ -46,10 +36,6 @@
     text-transform:uppercase;letter-spacing:.16em}
   .confid{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
     color:var(--brand);border:1px solid var(--brand);border-radius:3px;padding:2px 7px;margin-top:8px}
-  .installbtn{margin-top:10px;font-family:var(--ui);font-size:12.5px;font-weight:600;background:var(--brand);
-    color:#fff;border:0;border-radius:8px;padding:8px 15px;cursor:pointer;
-    box-shadow:0 8px 18px -8px rgba(200,16,46,.55)}
-  .installbtn:hover{background:var(--brand-d)}
   .sub{color:var(--muted);font-size:13.5px;margin:14px 0 30px;max-width:64ch;line-height:1.65}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -324,7 +310,6 @@
       <h1>Acesso ao Salesforce</h1>
       <span class="tag">logins × cadastro · dias sem login</span>
       <div><span class="confid">Confidencial · uso interno</span></div>
-      <div><button class="installbtn" id="installBtn" style="display:none">⬇ Instalar app</button></div>
     </div>
   </header>
   <p class="sub">Solte os dois CSVs, defina o período e as regras. A ferramenta cruza quem é
@@ -1234,7 +1219,8 @@ function wireReportControls(){
 function exportReport(){
   const R=ST.result, rep=ST.report; if(!rep)return;
   const meta={ini:R.ini.key,fim:R.fim.key,modo:R.modoUtil?"dias úteis":"dias corridos",gerado:new Date().toLocaleString("pt-BR")};
-  const doc=buildStandalone(rep,meta);
+  const slimRows=R.rows.map(r=>({nome:r.nome,email:r.email,apelido:r.apelido,faltasOf:r.faltasOf,situacao:r.situacao,entrada:r.entrada,entradaFonte:r.entradaFonte,entradaCad:r.entradaCad,saida:r.saida,esperados:r.esperados,presentes:r.presentes,faltas:r.faltas,pct:r.pct,maxStreak:r.maxStreak,ultimoAcesso:r.ultimoAcesso,novo:r.novo}));
+  const doc=buildStandalone(rep,meta,slimRows);
   const blob=new Blob([doc],{type:"text/html;charset=utf-8"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
@@ -1242,8 +1228,8 @@ function exportReport(){
   a.click();
 }
 
-function buildStandalone(rep,meta){
-  const data=JSON.stringify({rep,meta});
+function buildStandalone(rep,meta,rows){
+  const data=JSON.stringify({rep,meta,rows:rows||[]});
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Relatório de acesso ao Salesforce · ${meta.ini} a ${meta.fim}</title>
@@ -1255,7 +1241,7 @@ function buildStandalone(rep,meta){
 h1{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px}.kpis,.tree,.callout{box-shadow:0 1px 2px rgba(26,22,19,.04),0 14px 34px -22px rgba(26,22,19,.16)}.callout .cv{font-family:var(--serif)}
 .meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:24px}
 .bar{border-bottom:1px solid var(--hair);padding-bottom:12px;margin-bottom:22px}
-.ctr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.ctr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}.dlbtn{margin-left:auto;font-family:var(--ui);font-size:12.5px;font-weight:600;background:var(--brand);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}.dlbtn:hover{background:var(--brand-d)}
 .ctr span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 .seg{display:inline-flex;border:1px solid var(--hair);border-radius:7px;overflow:hidden}
 .seg button{font-family:var(--ui);font-size:12px;padding:6px 11px;border:0;background:#fff;color:var(--muted);cursor:pointer}
@@ -1297,6 +1283,7 @@ details.node>summary::-webkit-details-marker{display:none}details.node>summary:h
 <div class="ctr">
 <span>métrica</span><div class="seg" id="segMetric"><button data-v="taxa" aria-pressed="true">% sem login</button><button data-v="abs" aria-pressed="false">Dias sem login</button></div>
 <span style="margin-left:6px">ranking por</span><div class="seg" id="segDim"><button data-v="diretoria" aria-pressed="true">Diretoria</button><button data-v="superint" aria-pressed="false">Superint.</button><button data-v="gerencia" aria-pressed="false">Gerência</button></div>
+<button class="dlbtn" id="btnCsvExp">⬇ Baixar resumo (CSV)</button>
 </div>
 <div id="app"></div>
 <p class="foot">"Dia sem login" = dia contado dentro da janela ativa do consultor em que não houve nenhum acesso ao Salesforce. Mede acesso ao CRM, não trabalho — o corretor pode ter atuado sem abrir o sistema. Ranking padrão por taxa (dias sem login ÷ dias esperados) para não premiar times maiores. Arquivo autônomo, offline.</p>
@@ -1355,6 +1342,19 @@ function render(){
 }
 document.getElementById("segMetric").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;metric=b.dataset.v;[...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed",x===b));render();});
 document.getElementById("segDim").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;dim=b.dataset.v;[...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed",x===b));render();});
+function baixarResumoCSV(){
+  var rows=(DATA.rows||[]).slice().sort(function(a,b){return b.faltas-a.faltas;});
+  var head=["Consultor","Email","Apelido","Faltas apontadas","Situacao","Inicio considerado","Inicio por","Entrada cadastro","Saida","Dias esperados","Com login","Dias sem login","% com login","Amostra pequena"];
+  var lines=[head.join(";")];
+  rows.forEach(function(r){
+    var cells=[r.nome,r.email,r.apelido,(r.faltasOf==null?"":r.faltasOf),r.situacao,r.entrada,r.entradaFonte,r.entradaCad,r.saida,r.esperados,r.presentes,r.faltas,(r.pct==null?"":r.pct),(r.novo?"sim":"")];
+    lines.push(cells.map(function(x){return '"'+String(x==null?"":x).replace(/"/g,'""')+'"';}).join(";"));
+  });
+  var blob=new Blob(["\\ufeff"+lines.join("\\r\\n")],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="resumo_acesso_"+(DATA.meta.ini||"")+"_a_"+(DATA.meta.fim||"")+".csv"; a.click();
+}
+var _bc=document.getElementById("btnCsvExp"); if(_bc) _bc.addEventListener("click",baixarResumoCSV);
 render();
 <\/script></body></html>`;
 }
@@ -1429,22 +1429,6 @@ document.querySelectorAll(".presets button").forEach(b=>{
     if(ST.base&&ST.etv) document.getElementById("btnRun").click();
   });
 });
-</script>
-<script>
-/* PWA: service worker + botão de instalar */
-(function(){
-  if('serviceWorker' in navigator){
-    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
-  }
-  var deferred=null, btn=document.getElementById('installBtn');
-  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; if(btn) btn.style.display='inline-block'; });
-  if(btn) btn.addEventListener('click',function(){
-    if(!deferred) return;
-    deferred.prompt();
-    deferred.userChoice.finally(function(){ deferred=null; btn.style.display='none'; });
-  });
-  window.addEventListener('appinstalled',function(){ if(btn) btn.style.display='none'; });
-})();
 </script>
 </body>
 </html>
