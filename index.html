@@ -1277,7 +1277,7 @@ details.node>summary::-webkit-details-marker{display:none}details.node>summary:h
 .kids{padding-left:14px;background:#FBF9F6}.lv2>summary{padding-left:22px}.lv3>summary{padding-left:34px}
 .leaf{display:grid;grid-template-columns:18px minmax(140px,1fr) 120px 90px 70px;gap:10px;align-items:center;padding:6px 12px 6px 46px;border-top:1px solid var(--hair2);font-size:12.5px}
 .leaf .lname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaf .lfalta{font-family:var(--mono);text-align:right}.leaf .lfalta.hot{color:var(--signal);font-weight:600}
-.foot{margin-top:36px;font-size:12px;color:var(--muted);border-top:1px solid var(--hair);padding-top:14px}
+.foot{margin-top:36px;font-size:12px;color:var(--muted);border-top:1px solid var(--hair);padding-top:14px}.rsmwrap{overflow-x:auto;border-radius:10px}.rsm{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--hair);border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(26,22,19,.04),0 14px 34px -22px rgba(26,22,19,.16)}.rsm th,.rsm td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--hair2);font-size:12.5px;white-space:nowrap}.rsm th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}.rsm th.n,.rsm td.n{text-align:right;font-family:var(--mono)}.rsm td.nm{font-weight:600;white-space:normal}.rsm tbody tr:last-child td{border-bottom:0}.rsm tbody tr:hover{background:#FAF7F2}.rsm .sl{font-family:var(--mono);font-weight:600}.rsm .sl.hot{color:var(--signal)}.rsm .ap{font-family:var(--mono);font-weight:600;color:var(--ink)}
 </style></head><body><div class="wrap">
 <div class="cover"><span class="wordmark">metrocasa<span class="plus">+</span></span><div class="ek">Relatório executivo · comercial</div><h1>Acesso ao Salesforce</h1><div class="meta2">período ${meta.ini} → ${meta.fim} · ${meta.modo} · gerado em ${meta.gerado}</div><div><span class="confid">Confidencial · uso interno</span></div></div>
 <div class="ctr">
@@ -1338,6 +1338,22 @@ function render(){
     '<div class="bartrack"><div class="barfill" style="width:'+Math.max(2,val(n)/mv*100)+'%"></div></div><div class="vv">'+fmt(n)+'</div></div>';});
   h+='</div>';
   h+='<div class="secttl">Drill-down · Diretoria › Superintendência › Gerência › Consultor</div><div class="tree">'+rep.diretorias.map(d=>nodeHtml(d,1)).join("")+'</div>';
+  var _rows=(DATA.rows||[]).slice().sort(function(a,b){return b.faltas-a.faltas;});
+  var _hf=_rows.some(function(r){return r.faltasOf!=null;});
+  var _th='<th>Corretor</th>'+(_hf?'<th class="n">Faltas apont.</th>':'')+'<th>Situação</th><th class="n">Início</th><th class="n">Esper.</th><th class="n">Com login</th><th class="n">Sem login</th><th class="n">Maior seq.</th><th class="n">% c/login</th>';
+  var _tb=_rows.map(function(r){
+    var ini=r.entrada?String(r.entrada).split("-").reverse().join("/"):"—";
+    return '<tr><td class="nm">'+esc(r.nome)+'</td>'+
+      (_hf?'<td class="n"><span class="ap">'+(r.faltasOf==null?"—":r.faltasOf)+'</span></td>':'')+
+      '<td>'+esc(r.situacao||"")+'</td>'+
+      '<td class="n">'+ini+'</td>'+
+      '<td class="n">'+r.esperados+'</td>'+
+      '<td class="n">'+r.presentes+'</td>'+
+      '<td class="n"><span class="sl '+(r.faltas>0?'hot':'')+'">'+r.faltas+'</span></td>'+
+      '<td class="n">'+r.maxStreak+'</td>'+
+      '<td class="n">'+(r.pct==null?"—":r.pct+"%")+'</td></tr>';
+  }).join("");
+  h+='<div class="secttl">Resumo por corretor</div><div class="rsmwrap"><table class="rsm"><thead><tr>'+_th+'</tr></thead><tbody>'+_tb+'</tbody></table></div>';
   document.getElementById("app").innerHTML=h;
 }
 document.getElementById("segMetric").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;metric=b.dataset.v;[...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed",x===b));render();});
