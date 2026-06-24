@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Metrocasa · Acesso ao Salesforce</title>
-<meta name="theme-color" content="#C8102E">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Acesso SF">
 <style>
   :root{
     --ground:#F7F5F1; --panel:#FFFFFF; --ink:#1A1613; --muted:#6E665D;
@@ -43,17 +35,15 @@
     text-transform:uppercase;letter-spacing:.16em}
   .confid{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
     color:var(--brand);border:1px solid var(--brand);border-radius:3px;padding:2px 7px;margin-top:8px}
-  .installbtn{margin-top:10px;font-family:var(--ui);font-size:12.5px;font-weight:600;background:var(--brand);
-    color:#fff;border:0;border-radius:8px;padding:8px 15px;cursor:pointer;
-    box-shadow:0 8px 18px -8px rgba(200,16,46,.55)}
-  .installbtn:hover{background:var(--brand-d)}
   .sub{color:var(--muted);font-size:13.5px;margin:14px 0 30px;max-width:64ch;line-height:1.65}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:720px){.grid2{grid-template-columns:1fr}}
 
-  .drop{background:var(--panel);border:1.5px dashed var(--hair);border-radius:10px;
+  .drop{display:block;background:var(--panel);border:1.5px dashed var(--hair);border-radius:10px;
     padding:18px;cursor:pointer;transition:border-color .15s,background .15s;position:relative}
+  #dropFaltas{max-width:760px}
+  #dropFaltas .name,#dropFaltas .meta{white-space:normal}
   .drop:hover{border-color:var(--ink)}
   .drop.has{border-style:solid;border-color:var(--present-ink);background:#fff}
   .drop .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
@@ -126,6 +116,8 @@
   table.summary tbody tr:hover{background:#FAF7F2}
   .faltacell{font-family:var(--mono);font-weight:600}
   .faltacell.hot{color:var(--signal)}
+  .apont{font-family:var(--mono);font-weight:600;color:var(--ink)}
+  .apont.na{color:var(--muted);font-weight:400}
   tr.totals td{font-weight:700;border-top:2px solid var(--ink);background:#F4F1EC}
   .pct{font-family:var(--mono);color:var(--muted)}
 
@@ -317,7 +309,6 @@
       <h1>Acesso ao Salesforce</h1>
       <span class="tag">logins × cadastro · dias sem login</span>
       <div><span class="confid">Confidencial · uso interno</span></div>
-      <div><button class="installbtn" id="installBtn" style="display:none">⬇ Instalar app</button></div>
     </div>
   </header>
   <p class="sub">Solte os dois CSVs, defina o período e as regras. A ferramenta cruza quem é
@@ -338,6 +329,13 @@
       <input type="file" id="fileEtv" accept=".csv,.txt">
     </label>
   </div>
+
+  <label class="drop" id="dropFaltas" style="margin-top:14px">
+    <span class="lbl">CSV — faltas apontadas (opcional)</span>
+    <div class="name" id="nameFaltas">Arraste ou clique — colunas: apelido · faltas</div>
+    <div class="meta" id="metaFaltas">cruza pelo apelido e mostra a falta apontada ao lado de cada consultor</div>
+    <input type="file" id="fileFaltas" accept=".csv,.txt">
+  </label>
 
   <fieldset class="controls">
     <legend>regras</legend>
@@ -436,7 +434,7 @@
 "use strict";
 
 /* ---------- estado ---------- */
-const ST = { base:null, etv:null, map:{}, result:null, view:"sum", sort:{k:"faltas",dir:-1} };
+const ST = { base:null, etv:null, faltasMap:null, map:{}, result:null, view:"sum", sort:{k:"faltas",dir:-1} };
 
 /* ---------- leitura com fallback de encoding ---------- */
 function readFileSmart(file){
@@ -562,6 +560,29 @@ function wireDrop(dropId,inputId,nameId,metaId,slot){
 }
 wireDrop("dropBase","fileBase","nameBase","metaBase","base");
 wireDrop("dropEtv","fileEtv","nameEtv","metaEtv","etv");
+(function(){
+  const drop=document.getElementById("dropFaltas"), inp=document.getElementById("fileFaltas");
+  if(!drop) return;
+  const setFile=(file)=>{ if(!file) return;
+    readFileSmart(file).then(txt=>{
+      const parsed=parseCSV(txt);
+      const cA=pickHeader(parsed.headers,["apelido","apelido completo","nome"])||parsed.headers[0];
+      const cF=pickHeader(parsed.headers,["faltas","falta","qtd faltas","total faltas"])||parsed.headers[1];
+      const map=new Map();
+      parsed.data.forEach(r=>{ const a=norm(r[cA]); if(!a) return; const raw=String(r[cF]==null?"":r[cF]).trim();
+        const n=parseInt(raw.replace(/[^0-9-]/g,""),10); map.set(a, isFinite(n)?n:raw); });
+      ST.faltasMap=map;
+      document.getElementById("nameFaltas").textContent=file.name;
+      document.getElementById("metaFaltas").textContent=map.size+" apelidos · colunas: "+cA+" / "+cF;
+      drop.classList.add("has");
+      if(ST.base&&ST.etv&&ST.result) document.getElementById("btnRun").click();
+    });
+  };
+  inp.addEventListener("change",e=>setFile(e.target.files[0]));
+  drop.addEventListener("dragover",e=>{e.preventDefault();drop.style.borderColor="var(--ink)";});
+  drop.addEventListener("dragleave",()=>{drop.style.borderColor="";});
+  drop.addEventListener("drop",e=>{e.preventDefault();drop.style.borderColor="";setFile(e.dataTransfer.files[0]);});
+})();
 
 /* ---------- segmented toggles ---------- */
 function wireSeg(id){
@@ -590,6 +611,7 @@ const MAPDEF=[
   {slot:"etv",key:"gerente",label:"etv · Gerente",cands:["Gerente","gerencia","gerência"]},
   {slot:"etv",key:"superint",label:"etv · Superint.",cands:["Superint.","Superint","Superintendente","superintendencia","superintendência"]},
   {slot:"etv",key:"diretor",label:"etv · Diretor",cands:["Diretor","Diretoria"]},
+  {slot:"etv",key:"apelido",label:"etv · Apelido",cands:["APELIDO","apelido"]},
   {slot:"etv",key:"virouCor",label:"etv · Virou corretor",cands:["DATA QUE VIROU CORRETOR","data virou corretor","virou corretor"]},
   {slot:"etv",key:"virouGer",label:"etv · Virou gerente",cands:["DATA QUE VIROU GERENTE","data virou gerente","virou gerente"]},
   {slot:"etv",key:"virouSup",label:"etv · Virou superint.",cands:["DATA QUE VIROU SUPERINTENDENTE","data virou superintendente","virou superintendente"]},
@@ -669,6 +691,7 @@ function compute(){
       gerente:m.gerente?(r[m.gerente]||"").trim():"",
       superint:m.superint?(r[m.superint]||"").trim():"",
       diretor:m.diretor?(r[m.diretor]||"").trim():"",
+      apelido:m.apelido?(r[m.apelido]||"").trim():"",
       logins:new Set(),
       geo:new Map(), geoTotal:0, geoMiss:0
     };
@@ -724,8 +747,10 @@ function compute(){
     const key=dateToKey(dt); periodDays.push({key,dt:new Date(dt),we:!dowMonFri(dt)});
   }
 
-  const rows=[];
+  const rows=[]; let excluidosEntrada=0;
   consultores.forEach(c=>{
+    // desconsiderar quem entrou depois do fim do período
+    if(c.entradaCad && c.entradaCad.key > fim.key){ excluidosEntrada++; return; }
     const wStart = c.entrada ? new Date(Math.max(periodStart, keyToDate(c.entrada.key))) : new Date(periodStart);
     const wEnd   = c.saida   ? new Date(Math.min(periodEnd,   keyToDate(c.saida.key)))   : new Date(periodEnd);
     let esperados=0, presentes=0;
@@ -756,13 +781,21 @@ function compute(){
       esperados, presentes, faltas:esperados-presentes,
       pct: esperados? Math.round(presentes/esperados*100):null,
       ultimoAcesso:ultimo, maxStreak,
+      apelido:c.apelido,
+      faltasOf: ST.faltasMap ? (c.apelido && ST.faltasMap.has(norm(c.apelido)) ? ST.faltasMap.get(norm(c.apelido)) : null) : undefined,
       geo:[...c.geo.values()].sort((a,b)=>b.count-a.count), geoTotal:c.geoTotal, geoMiss:c.geoMiss,
       hadAnyLogin:c.logins.size>0, dayState
     });
   });
 
+  let faltasNaoCasados=0;
+  if(ST.faltasMap){
+    const apset=new Set(rows.map(r=>norm(r.apelido)).filter(Boolean));
+    ST.faltasMap.forEach((v,k)=>{ if(!apset.has(k)) faltasNaoCasados++; });
+  }
   ST.result={rows,periodDays,ini,fim,totalLogins,matchedLogins,
-    nConsult:consultores.length, modoUtil};
+    nConsult:consultores.length, modoUtil, excluidosEntrada,
+    faltasNaoCasados, temFaltas:!!ST.faltasMap};
   render();
 }
 
@@ -799,6 +832,8 @@ function render(){
         semLogin.map(r=>escapeHtml(r.nome)+"  ·  "+escapeHtml(r.email)).join("<br>")
       }</div></details></div>`;
   }
+  if(R.excluidosEntrada>0) notes+=`<div class="note ok">${R.excluidosEntrada} consultor(es) com <b>data de entrada posterior ao período</b> foram desconsiderados (ainda não eram prestadores na janela analisada).</div>`;
+  if(R.temFaltas&&R.faltasNaoCasados>0) notes+=`<div class="note warn">${R.faltasNaoCasados} apelido(s) da planilha de faltas não casaram com nenhum consultor — confira a grafia do apelido nos dois arquivos.</div>`;
   if(!notes) notes=`<div class="note ok">Chave consistente: todos os consultores têm logins casados no período.</div>`;
   document.getElementById("notes").innerHTML=notes;
 
@@ -823,15 +858,19 @@ function renderSummary(){
     if(typeof x==="string"){x=x.toLowerCase();y=(y||"").toLowerCase();return x<y?-s.dir:x>y?s.dir:0;}
     return ((x??-1)-(y??-1))*s.dir;
   });
-  const tot=base.reduce((o,r)=>{o.e+=r.esperados;o.p+=r.presentes;o.f+=r.faltas;return o;},{e:0,p:0,f:0});
-  const head=[["nome","Consultor"],["situacao","Situação"],["entrada","Entrada"],["saida","Saída"],
-    ["esperados","Esperados",1],["presentes","Com login",1],["faltas","Sem login",1],["maxStreak","Maior seq. s/ login",1],["pct","% c/ login",1]];
+  const hasFaltas=!!ST.faltasMap;
+  const tot=base.reduce((o,r)=>{o.e+=r.esperados;o.p+=r.presentes;o.f+=r.faltas;o.fo+=(typeof r.faltasOf==='number'?r.faltasOf:0);return o;},{e:0,p:0,f:0,fo:0});
+  const head=[["nome","Consultor"]];
+  if(hasFaltas) head.push(["faltasOf","Faltas apontadas",1]);
+  head.push(["situacao","Situação"],["entrada","Entrada"],["saida","Saída"],
+    ["esperados","Esperados",1],["presentes","Com login",1],["faltas","Sem login",1],["maxStreak","Maior seq. s/ login",1],["pct","% c/ login",1]);
   let html=`<table class="summary"><thead><tr>`+
     head.map(h=>`<th class="${h[2]?'num':''}" data-k="${h[0]}">${h[1]}${ST.sort.k===h[0]?(ST.sort.dir<0?" ↓":" ↑"):""}</th>`).join("")+
     `</tr></thead><tbody>`;
   rows.forEach(r=>{
     html+=`<tr style="cursor:pointer" data-email="${escapeHtml(r.email)}">
       <td class="nome">${escapeHtml(r.nome)}</td>
+      ${hasFaltas?`<td class="num"><span class="apont ${r.faltasOf==null?'na':''}">${r.faltasOf==null?"—":r.faltasOf}</span></td>`:""}
       <td>${escapeHtml(r.situacao)}</td>
       <td class="num">${r.entrada||"—"}${r.entradaFonte&&r.entradaFonte!=="entrada"?`<span class="efmark" title="início ajustado para a data de &quot;${r.entradaFonte}&quot;${r.entradaCad?` · cadastro: ${r.entradaCad}`:""}">↑</span>`:""}${r.novo?`<span class="novobadge" title="poucos dias esperados no período — amostra pequena, % pouco confiável">novo</span>`:""}</td>
       <td class="num">${r.saida||"—"}</td>
@@ -842,7 +881,7 @@ function renderSummary(){
       <td class="num"><span class="pct">${r.pct===null?"—":r.pct+"%"}</span></td>
     </tr>`;
   });
-  html+=`<tr class="totals"><td>Total${ST.search?" (filtrado)":""}</td><td></td><td></td><td></td>
+  html+=`<tr class="totals"><td>Total${ST.search?" (filtrado)":""}</td>${hasFaltas?`<td class="num">${tot.fo}</td>`:""}<td></td><td></td><td></td>
     <td class="num">${tot.e}</td><td class="num">${tot.p}</td><td class="num">${tot.f}</td><td class="num"></td>
     <td class="num">${tot.e?Math.round(tot.p/tot.e*100):0}%</td></tr>`;
   html+=`</tbody></table>`;
@@ -932,6 +971,7 @@ function openProfile(email){
     </div>
     <div class="prof-kpis">
       <div class="pk"><div class="n sig">${r.faltas}</div><div class="k">dias sem login</div></div>
+      ${r.faltasOf!=null&&r.faltasOf!==undefined?`<div class="pk"><div class="n">${r.faltasOf}</div><div class="k">faltas apontadas</div></div>`:""}
       <div class="pk"><div class="n">${r.presentes}/${r.esperados}</div><div class="k">com login / esperados</div></div>
       <div class="pk"><div class="n ${tMe>=.3?'sig':'ok'}">${pct(tMe*100)}%</div><div class="k">% sem login</div></div>
       <div class="pk"><div class="n ${r.maxStreak>=3?'sig':''}">${r.maxStreak}</div><div class="k">maior seq. sem login</div></div>
@@ -1320,10 +1360,10 @@ function switchView(v){
 /* ---------- export ---------- */
 document.getElementById("btnCsv").addEventListener("click",()=>{
   const R=ST.result; if(!R)return;
-  const head=["Consultor","Email","Situacao","Inicio considerado","Inicio por","Entrada cadastro","Saida","Dias esperados","Com login","Dias sem login","% com login","Amostra pequena"];
+  const head=["Consultor","Email","Apelido","Faltas apontadas","Situacao","Inicio considerado","Inicio por","Entrada cadastro","Saida","Dias esperados","Com login","Dias sem login","% com login","Amostra pequena"];
   const lines=[head.join(";")];
   [...R.rows].sort((a,b)=>b.faltas-a.faltas).forEach(r=>{
-    lines.push([r.nome,r.email,r.situacao,r.entrada,r.entradaFonte,r.entradaCad,r.saida,r.esperados,r.presentes,r.faltas,r.pct===null?"":r.pct,r.novo?"sim":""].
+    lines.push([r.nome,r.email,r.apelido,(r.faltasOf==null?"":r.faltasOf),r.situacao,r.entrada,r.entradaFonte,r.entradaCad,r.saida,r.esperados,r.presentes,r.faltas,r.pct===null?"":r.pct,r.novo?"sim":""].
       map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";"));
   });
   const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
@@ -1373,22 +1413,6 @@ document.querySelectorAll(".presets button").forEach(b=>{
     if(ST.base&&ST.etv) document.getElementById("btnRun").click();
   });
 });
-</script>
-<script>
-/* PWA: service worker + botão de instalar */
-(function(){
-  if('serviceWorker' in navigator){
-    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
-  }
-  var deferred=null, btn=document.getElementById('installBtn');
-  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; if(btn) btn.style.display='inline-block'; });
-  if(btn) btn.addEventListener('click',function(){
-    if(!deferred) return;
-    deferred.prompt();
-    deferred.userChoice.finally(function(){ deferred=null; btn.style.display='none'; });
-  });
-  window.addEventListener('appinstalled',function(){ if(btn) btn.style.display='none'; });
-})();
 </script>
 </body>
 </html>
