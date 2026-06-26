@@ -388,15 +388,14 @@
   .srcadv{margin-top:6px}
 
   /* pontinhos discretos de conexão no header */
-  .connbar{display:inline-flex;align-items:center;gap:5px;margin-left:10px;padding-left:10px;
-    border-left:1px solid var(--hair)}
+  .connbar{display:inline-flex;align-items:center;gap:5px;margin-right:6px}
   .connbar .cdot{width:7px;height:7px;border-radius:50%;background:#cdd3d8;
     transition:background .3s ease;cursor:default}
   .connbar .cdot.loading{background:var(--brand);animation:cpulse 1s ease-in-out infinite}
   .connbar .cdot.ok{background:var(--ok)}
   .connbar .cdot.err{background:var(--signal)}
   @keyframes cpulse{0%,100%{opacity:.35}50%{opacity:1}}
-  @media(max-width:520px){ .connbar{margin-left:8px;padding-left:8px} }
+  @media(max-width:520px){ .connbar{margin-right:4px} }
   @media(prefers-reduced-motion:reduce){
     .ld.loading .dot,.connbar .cdot.loading{animation:none}
     .loadcard{transition:none}
@@ -473,13 +472,13 @@
           </g>
         </svg>
         <span class="brandtxt">Acesso ao Salesforce<span class="brandsub">Comercial · Metrocasa</span></span>
+      </span>
+      <div class="tb-actions">
         <span class="connbar" id="connBar" title="Status das fontes">
           <span class="cdot" id="cd_base"   title="Base (logins)"></span>
           <span class="cdot" id="cd_etv"    title="Etv (cadastro)"></span>
           <span class="cdot" id="cd_faltas" title="Faltas apontadas"></span>
         </span>
-      </span>
-      <div class="tb-actions">
         <span class="confid">Confidencial · uso interno</span>
         <div class="popwrap">
           <button class="iconbtn" id="cfgBtn" title="Ajustes avançados" aria-label="Ajustes avançados" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -507,10 +506,6 @@
     </div>
     <div class="tb-updated" id="updatedAt">base lida ao vivo das planilhas linkadas</div>
   </header>
-  <p class="intro">As planilhas de logins e de cadastro já vêm <strong>linkadas</strong> — a ferramenta puxa o CSV
-    direto das fontes, cruza quem é consultor com o histórico de login, respeita a janela de entrada/saída de cada um
-    e conta os dias em que a pessoa <strong>não logou no Salesforce</strong>. As fontes conectam sozinhas ao abrir;
-    use <em>↻ Atualizar</em> no topo para repuxar. Todo o cálculo roda no seu navegador.</p>
 
   <!-- ===================== CONEXÃO (animação) ===================== -->
   <section class="loadwrap">
@@ -603,8 +598,8 @@
       <div class="field">
         <label>Dias contados</label>
         <div class="seg" id="segDias">
-          <button data-v="util" aria-pressed="true">Dia útil</button>
-          <button data-v="corrido" aria-pressed="false">Corrido</button>
+          <button data-v="util" aria-pressed="false">Dia útil</button>
+          <button data-v="corrido" aria-pressed="true">Corrido</button>
         </div>
       </div>
       <div class="field">
@@ -696,7 +691,7 @@ const CONFIG = {
 };
 
 /* ---------- estado ---------- */
-const ST = { base:null, etv:null, faltasMap:null, map:{}, result:null, view:"sum", sort:{k:"faltas",dir:-1} };
+const ST = { base:null, etv:null, faltasMap:null, faltasRaw:null, map:{}, result:null, view:"sum", sort:{k:"faltas",dir:-1} };
 
 /* ---------- leitura com fallback de encoding (a partir de ArrayBuffer) ---------- */
 function decodeSmart(buf){
@@ -838,9 +833,11 @@ function ingestFaltas(displayName, txt){
   const cA=pickHeader(parsed.headers,["apelido","apelido completo","nome"])||parsed.headers[0];
   const cF=pickHeader(parsed.headers,["faltas","falta","qtd faltas","total faltas"])||parsed.headers[1];
   const map=new Map();
-  parsed.data.forEach(r=>{ const a=norm(r[cA]); if(!a) return; const raw=String(r[cF]==null?"":r[cF]).trim();
-    const n=parseInt(raw.replace(/[^0-9-]/g,""),10); map.set(a, isFinite(n)?n:raw); });
+  const rawMap=new Map();
+  parsed.data.forEach(r=>{ const orig=String(r[cA]==null?"":r[cA]).trim(); const a=norm(orig); if(!a) return; const raw=String(r[cF]==null?"":r[cF]).trim();
+    const n=parseInt(raw.replace(/[^0-9-]/g,""),10); map.set(a, isFinite(n)?n:raw); rawMap.set(a, orig); });
   ST.faltasMap=map;
+  ST.faltasRaw=rawMap;
   document.getElementById("nameFaltas").textContent=displayName;
   document.getElementById("metaFaltas").textContent=map.size+" apelidos · colunas: "+cA+" / "+cF;
   document.getElementById("dropFaltas").classList.add("has");
@@ -1183,14 +1180,16 @@ function compute(){
     });
   });
 
-  let faltasNaoCasados=0;
+  let faltasNaoCasados=0; const faltasNaoCasadosList=[];
   if(ST.faltasMap){
     const apset=new Set(rows.map(r=>norm(r.apelido)).filter(Boolean));
-    ST.faltasMap.forEach((v,k)=>{ if(!apset.has(k)) faltasNaoCasados++; });
+    ST.faltasMap.forEach((v,k)=>{ if(!apset.has(k)){ faltasNaoCasados++;
+      faltasNaoCasadosList.push({apelido:(ST.faltasRaw&&ST.faltasRaw.get(k))||k, faltas:v}); } });
+    faltasNaoCasadosList.sort((a,b)=>String(a.apelido).toLowerCase()<String(b.apelido).toLowerCase()?-1:1);
   }
   ST.result={rows,periodDays,ini,fim,totalLogins,matchedLogins,
     nConsult:consultores.length, modoUtil, excluidosEntrada,
-    faltasNaoCasados, temFaltas:!!ST.faltasMap};
+    faltasNaoCasados, faltasNaoCasadosList, temFaltas:!!ST.faltasMap};
   render();
 }
 
@@ -1228,7 +1227,10 @@ function render(){
       }</div></details></div>`;
   }
   if(R.excluidosEntrada>0) notes+=`<div class="note ok">${R.excluidosEntrada} consultor(es) com <b>data de entrada posterior ao período</b> foram desconsiderados (ainda não eram prestadores na janela analisada).</div>`;
-  if(R.temFaltas&&R.faltasNaoCasados>0) notes+=`<div class="note warn">${R.faltasNaoCasados} apelido(s) da planilha de faltas não casaram com nenhum consultor — confira a grafia do apelido nos dois arquivos.</div>`;
+  if(R.temFaltas&&R.faltasNaoCasados>0) notes+=`<div class="note warn">${R.faltasNaoCasados} apelido(s) da planilha de faltas não casaram com nenhum consultor — confira a grafia do apelido nos dois arquivos.
+      <details><summary>ver lista</summary><div class="list">${
+        (R.faltasNaoCasadosList||[]).map(x=>escapeHtml(String(x.apelido))+(x.faltas!=null&&x.faltas!==""?("  ·  "+escapeHtml(String(x.faltas))+" falta(s)"):"")).join("<br>")
+      }</div></details></div>`;
   if(!notes) notes=`<div class="note ok">Chave consistente: todos os consultores têm logins casados no período.</div>`;
   document.getElementById("notes").innerHTML=notes;
 
