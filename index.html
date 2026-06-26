@@ -2,20 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e92224">
 <title>Metrocasa · Acesso ao Salesforce</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGZpbGw9IiNFMTFCMkMiLz4KPGcgZmlsbD0iI2ZmZmZmZiI+CjxyZWN0IHg9IjEzNCIgeT0iMjY2IiB3aWR0aD0iMjQ0IiBoZWlnaHQ9IjgwIiByeD0iNDAiLz4KPGNpcmNsZSBjeD0iMTc0IiBjeT0iMjg2IiByPSI1MCIvPgo8Y2lyY2xlIGN4PSIyMjgiIGN5PSIyNDgiIHI9IjY2Ii8+CjxjaXJjbGUgY3g9IjI5NiIgY3k9IjI0MCIgcj0iNzQiLz4KPGNpcmNsZSBjeD0iMjc4IiBjeT0iMjcyIiByPSI2MCIvPgo8Y2lyY2xlIGN4PSIzMzQiIGN5PSIyODgiIHI9IjU0Ii8+CjwvZz4KPC9zdmc+Cg==">
 <style>
   :root{
-    --ground:#F7F5F1; --panel:#FFFFFF; --ink:#1A1613; --muted:#6E665D;
-    --hair:#E7E1D9; --hair2:#F0ECE5;
-    --brand:#C8102E; --brand-d:#9C0C24; --brand-soft:#FBE7E9;
-    --signal:#C8102E; --signal-soft:#FBE7E9;
-    --present:#CBD7CD; --present-ink:#5C7A66; --present-soft:#E9F0EB; --ok:#5C7A66; --warn:#B45309;
+    --ground:#f6f7f8; --panel:#ffffff; --ink:#1c2126; --muted:#5b6670;
+    --hair:#e2e5e8; --hair2:#eef1f3;
+    --brand:#e92224; --brand-d:#cf1d1f; --brand-soft:#fdecec;
+    --signal:#b3261e; --signal-soft:#fbecea;
+    --present:#b6d8c4; --present-ink:#1f7a55; --present-soft:#eaf3ee; --ok:#1f7a55; --warn:#b4541a;
     --geo:#1F5C72;
     --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
-    --ui:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
@@ -60,9 +61,32 @@
   .row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
   .field{display:flex;flex-direction:column;gap:5px}
   .field label{font-size:12px;color:var(--muted);font-weight:500}
-  input[type=date],input[type=text],select{font-family:var(--mono);font-size:13px;
+  input[type=date],input[type=text],input[type=url],select{font-family:var(--mono);font-size:13px;
     padding:7px 9px;border:1px solid var(--hair);border-radius:7px;background:#fff;color:var(--ink)}
   input:focus,select:focus{outline:2px solid var(--ink);outline-offset:1px;border-color:var(--ink)}
+
+  /* fontes linkadas */
+  fieldset.sources{border:1px solid var(--hair);border-radius:10px;background:var(--panel);
+    padding:16px 18px 18px;margin:0 0 4px}
+  fieldset.sources legend{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);padding:0 8px}
+  .srcgrid{display:flex;flex-direction:column;gap:12px}
+  .srcrow{display:grid;grid-template-columns:140px 1fr auto;gap:12px;align-items:center}
+  @media(max-width:720px){.srcrow{grid-template-columns:1fr}}
+  .srcrow .sl{font-size:12.5px;font-weight:600;color:var(--ink)}
+  .srcrow .sl small{display:block;font-weight:400;color:var(--muted);font-family:var(--mono);font-size:10.5px;margin-top:2px}
+  .srcrow input[type=url]{width:100%;font-size:12px}
+  .srcstate{font-family:var(--mono);font-size:11px;white-space:nowrap;color:var(--muted);min-width:120px;text-align:right}
+  .srcstate.ok{color:var(--present-ink)} .srcstate.err{color:var(--signal)} .srcstate.load{color:var(--warn)}
+  .srcactions{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .srcnote{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+  .srcnote b{color:var(--brand-d)}
+  details.manual{margin-top:14px;border-top:1px dashed var(--hair);padding-top:12px}
+  details.manual>summary{cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600;list-style:none}
+  details.manual>summary::-webkit-details-marker{display:none}
+  details.manual>summary::before{content:"▶ ";font-size:10px;color:var(--muted)}
+  details.manual[open]>summary::before{content:"▼ "}
+  details.manual .manualbody{margin-top:14px}
 
   .seg{display:inline-flex;border:1px solid var(--hair);border-radius:7px;overflow:hidden}
   .seg button{font-family:var(--ui);font-size:12.5px;padding:7px 12px;border:0;
@@ -287,7 +311,7 @@
   .nogeo{font-size:13px;color:var(--muted);margin:6px 0 0}
 
   /* polimento executivo — profundidade sutil */
-  table.summary,.profile,.tree,.kpis,.gridscroll,fieldset.controls,.diag,.geomap{
+  table.summary,.profile,.tree,.kpis,.gridscroll,fieldset.controls,fieldset.sources,.diag,.geomap{
     box-shadow:0 1px 2px rgba(26,22,19,.04),0 14px 34px -20px rgba(26,22,19,.16)}
   .callout{box-shadow:0 1px 2px rgba(26,22,19,.03),0 10px 24px -18px rgba(26,22,19,.14)}
   .kpi .n,.pk .n,.stat .n{font-variant-numeric:tabular-nums}
@@ -295,49 +319,274 @@
   .secttl{letter-spacing:.16em}
   button.run{letter-spacing:.01em;box-shadow:0 8px 20px -10px rgba(200,16,46,.5)}
   .viewtabs button[aria-pressed=true]{background:var(--brand);border-color:var(--brand)}
+
+  /* ===================== TEMA EXECUTIVO · linha "Minutas" ===================== */
+  body{font-family:var(--ui);font-size:14px;line-height:1.45}
+  .wrap{padding-top:0}
+  /* topbar fixa branca */
+  .topbar{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--hair);
+    margin:0 -24px;padding:calc(env(safe-area-inset-top) + 12px) 24px 0}
+  .topbar .row1{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+  .brand{display:flex;align-items:center;gap:11px;margin-right:auto;min-width:0}
+  .brand .logo{height:30px;width:30px;border-radius:7px;display:block;flex:none}
+  .brand .brandtxt{font-size:15px;font-weight:700;line-height:1.15;letter-spacing:-.2px;white-space:nowrap;color:var(--ink)}
+  .brand .brandsub{display:block;font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+  .tb-actions{display:flex;align-items:center;gap:8px;flex:none}
+  .iconbtn{height:38px;min-width:38px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;justify-content:center;
+    border:1px solid var(--hair);border-radius:9px;background:#fff;color:var(--muted);cursor:pointer;
+    font-family:var(--ui);font-size:13px;font-weight:600;transition:all .12s}
+  .iconbtn svg{width:17px;height:17px;display:block}
+  .iconbtn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+  .iconbtn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .iconbtn.primary:hover{background:var(--brand-d);color:#fff}
+  .iconbtn.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+  /* popover de ajustes (engrenagem) */
+  .popwrap{position:relative;display:inline-block}
+  .pop{position:absolute;top:calc(100% + 8px);right:0;z-index:60;background:#fff;border:1px solid var(--hair);
+    border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.16);padding:16px;min-width:264px;max-width:320px;max-height:76vh;overflow:auto}
+  .pop[hidden]{display:none}
+  .pop.cfgpanel{min-width:300px;max-width:min(580px,calc(100vw - 28px))}
+  .pop h4{margin:0 0 4px;font-size:13.5px;color:var(--ink)}
+  .pop .popsub{font-size:11.5px;color:var(--muted);margin-bottom:13px;line-height:1.55}
+  .pop .field label{font-size:12px;color:var(--muted);font-weight:500}
+  .pop input[type=text],.pop textarea{width:100%}
+  .pop .cfglbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+  .pop .popfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;
+    border-top:1px solid var(--hair);padding-top:11px}
+  .pop .popfoot .src{font-size:11px}
+  .pop .lk{font-size:12.5px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px}
+  .pop .lk:hover{background:var(--hair2)}
+  .pop .lk.accent{color:var(--brand)}
+
+  /* ===== animação de conexão das fontes ===== */
+  .loadwrap{margin:0 0 4px}
+  .loadcard{display:flex;flex-direction:column;align-items:center;gap:16px;background:#fff;
+    border:1px solid var(--hair);border-radius:14px;padding:34px 22px 26px;overflow:hidden;
+    transition:opacity .45s ease, transform .45s ease, max-height .55s ease, padding .55s ease,
+      margin .55s ease, border-color .45s ease;max-height:320px}
+  .loadcard.done{opacity:0;transform:translateY(-8px);max-height:0;padding-top:0;padding-bottom:0;
+    margin-bottom:0;border-color:transparent;pointer-events:none}
+  .loaddots{display:flex;gap:30px}
+  .ld{display:flex;flex-direction:column;align-items:center;gap:11px}
+  .ld .dot{width:18px;height:18px;border-radius:50%;background:#cdd3d8;
+    transition:background .4s ease, box-shadow .4s ease}
+  .ld .cap{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .ld.loading .dot{background:var(--brand);animation:ldwave 1.05s ease-in-out infinite}
+  .ld.loading .cap{color:var(--ink)}
+  .ld[data-i="1"].loading .dot{animation-delay:.16s}
+  .ld[data-i="2"].loading .dot{animation-delay:.32s}
+  .ld.ok .dot{background:var(--ok);box-shadow:0 0 0 5px rgba(31,122,85,.14);animation:ldpop .35s ease}
+  .ld.err .dot{background:var(--signal);box-shadow:0 0 0 5px rgba(179,38,30,.14)}
+  .ld.ok .cap,.ld.err .cap{color:var(--ink)}
+  @keyframes ldwave{0%,100%{transform:translateY(0)}28%{transform:translateY(-13px)}56%{transform:translateY(0)}}
+  @keyframes ldpop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .loadmsg{font-size:13px;color:var(--muted);min-height:1.2em;text-align:center}
+  .srcedit{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;
+    text-decoration:underline;text-underline-offset:2px;padding:2px 6px}
+  .srcedit:hover{color:var(--brand)}
+  .srcadv[hidden]{display:none}
+  .srcadv{margin-top:6px}
+
+  /* pontinhos discretos de conexão no header */
+  .connbar{display:inline-flex;align-items:center;gap:5px;margin-left:10px;padding-left:10px;
+    border-left:1px solid var(--hair)}
+  .connbar .cdot{width:7px;height:7px;border-radius:50%;background:#cdd3d8;
+    transition:background .3s ease;cursor:default}
+  .connbar .cdot.loading{background:var(--brand);animation:cpulse 1s ease-in-out infinite}
+  .connbar .cdot.ok{background:var(--ok)}
+  .connbar .cdot.err{background:var(--signal)}
+  @keyframes cpulse{0%,100%{opacity:.35}50%{opacity:1}}
+  @media(max-width:520px){ .connbar{margin-left:8px;padding-left:8px} }
+  @media(prefers-reduced-motion:reduce){
+    .ld.loading .dot,.connbar .cdot.loading{animation:none}
+    .loadcard{transition:none}
+  }
+  .confid{display:inline-flex;align-items:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--brand);border:1px solid var(--brand);border-radius:4px;padding:5px 9px;margin:0}
+  .tb-updated{font-size:11px;color:var(--muted);padding:0 0 9px}
+  .intro{font-size:12.5px;color:var(--muted);line-height:1.6;margin:18px 0 24px;max-width:78ch}
+  .intro strong{color:var(--ink);font-weight:600}
+  @media(max-width:640px){ .topbar{padding-left:16px;padding-right:16px} .brand .brandsub{display:none} .tb-updated{display:none} }
+  @media(max-width:520px){ .confid{display:none} }
+
+  /* section labels no estilo Minutas */
+  .secttl{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:600;margin:28px 0 12px}
+  .secttl::after{background:var(--hair)}
+
+  /* achatar sombras → cards chapados de borda fina */
+  table.summary,.profile,.tree,.kpis,.gridscroll,fieldset.controls,fieldset.sources,.diag,.geomap,.callout,.stat,.kpi{
+    box-shadow:none !important}
+  fieldset.controls,fieldset.sources{border-radius:12px}
+  button.run{box-shadow:none;border-radius:9px}
+  button.run:hover{background:var(--brand-d)}
+  button.ghost{border-radius:9px}
+  .viewtabs button{border-radius:9px}
+  /* faixa de stats no topo dos resultados parecida com a kpibar do Minutas */
+  .diag{gap:1px}
+  .stat{border-left:3px solid var(--hair)}
+  .stat.flag{border-left-color:var(--signal)}
+
+  /* rodapé global com tarja vermelha (igual Minutas) */
+  .appfoot{border-top:3px solid var(--brand);background:#fff;margin-top:44px}
+  .appfoot-inner{max-width:1180px;margin:0 auto;padding:18px 24px 26px;display:grid;
+    grid-template-columns:auto 1fr auto;gap:22px;align-items:center}
+  .appfoot .af-brand{font-size:20px;font-weight:800;color:var(--brand);letter-spacing:-.5px}
+  .appfoot .af-src{font-size:12px;color:var(--muted);line-height:1.5}
+  .appfoot .af-src b{color:var(--ink)}
+  .appfoot .af-cred{font-size:12px;color:var(--muted);text-align:right;line-height:1.6;white-space:nowrap}
+  .appfoot .af-cred b{color:var(--brand)}
+  .appfoot .af-cred .who{color:var(--ink);font-weight:600}
+  @media(max-width:780px){ .appfoot-inner{grid-template-columns:1fr;gap:12px} .appfoot .af-cred{text-align:left;white-space:normal} }
+
+  /* voltar ao topo */
+  #backTop{position:fixed;right:18px;bottom:18px;z-index:40;width:42px;height:42px;border-radius:50%;border:none;
+    background:var(--brand);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.18);
+    display:none;align-items:center;justify-content:center;line-height:1}
+  #backTop.show{display:flex}
+
+  /* impressão executiva (esconde controles e URLs sensíveis) */
+  @media print{
+    @page{ size:A4 portrait; margin:12mm; }
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    body{ background:#fff; }
+    .topbar{ position:static; margin:0 0 8px; border-bottom:2px solid var(--brand); }
+    .tb-actions .iconbtn,#backTop,fieldset.sources,.searchbar,#matches,.viewtabs{ display:none !important; }
+    .gridscroll,.tablewrap{ max-height:none !important; overflow:visible !important; }
+    table{ font-size:8pt; } th{ position:static !important; }
+    .appfoot{ position:static; margin-top:14px; }
+    .callout,.stat,.kpi,tr,.note{ break-inside:avoid; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="brandband"></div>
-
-  <header class="top">
-    <div class="brand">
-      <span class="wordmark">metrocasa<span class="plus">+</span></span>
-      <span class="unit">comercial · acesso ao Salesforce</span>
+  <header class="topbar">
+    <div class="row1">
+      <span class="brand">
+        <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-label="Metrocasa">
+          <rect width="512" height="512" fill="#e92224"/>
+          <g fill="#ffffff">
+            <rect x="134" y="266" width="244" height="80" rx="40"/>
+            <circle cx="174" cy="286" r="50"/><circle cx="228" cy="248" r="66"/>
+            <circle cx="296" cy="240" r="74"/><circle cx="278" cy="272" r="60"/>
+            <circle cx="334" cy="288" r="54"/>
+          </g>
+        </svg>
+        <span class="brandtxt">Acesso ao Salesforce<span class="brandsub">Comercial · Metrocasa</span></span>
+        <span class="connbar" id="connBar" title="Status das fontes">
+          <span class="cdot" id="cd_base"   title="Base (logins)"></span>
+          <span class="cdot" id="cd_etv"    title="Etv (cadastro)"></span>
+          <span class="cdot" id="cd_faltas" title="Faltas apontadas"></span>
+        </span>
+      </span>
+      <div class="tb-actions">
+        <span class="confid">Confidencial · uso interno</span>
+        <div class="popwrap">
+          <button class="iconbtn" id="cfgBtn" title="Ajustes avançados" aria-label="Ajustes avançados" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+          <div class="pop cfgpanel" id="cfgPop" hidden>
+            <h4>Ajustes avançados</h4>
+            <div class="popsub">Quem entra no cálculo, feriados a descontar e conferência das colunas detectadas. Aplicado ao recalcular.</div>
+            <div class="field">
+              <label>Função contém</label>
+              <input type="text" id="funcTxt" value="consultor">
+            </div>
+            <div class="field" style="margin-top:12px">
+              <label>Feriados a descontar (um por linha, dd/mm/aaaa ou aaaa-mm-dd)</label>
+              <textarea id="feriados" placeholder="01/01/2026&#10;2026-04-21&#10;..."></textarea>
+            </div>
+            <div id="mapWrap" class="hide">
+              <div class="cfglbl">conferir colunas detectadas</div>
+              <div class="mapgrid" id="mapGrid"></div>
+            </div>
+            <div class="popfoot"><span class="src">Só consultores com Situação = “Ativo” entram no cálculo.</span><button class="lk accent" id="cfgClose">Fechar</button></div>
+          </div>
+        </div>
+        <button class="iconbtn primary" id="btnReloadTop" title="Atualizar planilhas" aria-label="Atualizar planilhas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+        <button class="iconbtn" id="btnPrintTop" title="Imprimir / salvar PDF" aria-label="Imprimir" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+      </div>
     </div>
-    <div class="ttl">
-      <h1>Acesso ao Salesforce</h1>
-      <span class="tag">logins × cadastro · dias sem login</span>
-      <div><span class="confid">Confidencial · uso interno</span></div>
-    </div>
+    <div class="tb-updated" id="updatedAt">base lida ao vivo das planilhas linkadas</div>
   </header>
-  <p class="sub">Solte os dois CSVs, defina o período e as regras. A ferramenta cruza quem é
-    consultor com o histórico de login, respeita a janela de entrada/saída de cada um e conta os
-    dias em que a pessoa <strong>não logou no Salesforce</strong>. Tudo roda no seu navegador — nada sai daqui.</p>
+  <p class="intro">As planilhas de logins e de cadastro já vêm <strong>linkadas</strong> — a ferramenta puxa o CSV
+    direto das fontes, cruza quem é consultor com o histórico de login, respeita a janela de entrada/saída de cada um
+    e conta os dias em que a pessoa <strong>não logou no Salesforce</strong>. As fontes conectam sozinhas ao abrir;
+    use <em>↻ Atualizar</em> no topo para repuxar. Todo o cálculo roda no seu navegador.</p>
 
-  <div class="grid2">
-    <label class="drop" id="dropBase">
-      <span class="lbl">CSV — base (logins)</span>
-      <div class="name" id="nameBase">Arraste ou clique para escolher</div>
-      <div class="meta" id="metaBase">colunas esperadas: Nome do usuário · Horário de login</div>
-      <input type="file" id="fileBase" accept=".csv,.txt">
-    </label>
-    <label class="drop" id="dropEtv">
-      <span class="lbl">CSV — etv (cadastro)</span>
-      <div class="name" id="nameEtv">Arraste ou clique para escolher</div>
-      <div class="meta" id="metaEtv">colunas esperadas: FUNÇÃO · E-MAIL_2 · Data de entrada/Saida</div>
-      <input type="file" id="fileEtv" accept=".csv,.txt">
-    </label>
-  </div>
+  <!-- ===================== CONEXÃO (animação) ===================== -->
+  <section class="loadwrap">
+    <div class="loadcard" id="loadCard">
+      <div class="loaddots">
+        <div class="ld" id="ld_base"   data-i="0"><span class="dot"></span><span class="cap">Base</span></div>
+        <div class="ld" id="ld_etv"    data-i="1"><span class="dot"></span><span class="cap">Etv</span></div>
+        <div class="ld" id="ld_faltas" data-i="2"><span class="dot"></span><span class="cap">Faltas</span></div>
+      </div>
+      <div class="loadmsg" id="loadMsg2">Conectando às planilhas…</div>
+      <button class="srcedit" id="srcEditBtn" type="button">ajustar fontes / upload manual</button>
+    </div>
 
-  <label class="drop" id="dropFaltas" style="margin-top:14px">
-    <span class="lbl">CSV — faltas apontadas (opcional)</span>
-    <div class="name" id="nameFaltas">Arraste ou clique — colunas: apelido · faltas</div>
-    <div class="meta" id="metaFaltas">cruza pelo apelido e mostra a falta apontada ao lado de cada consultor</div>
-    <input type="file" id="fileFaltas" accept=".csv,.txt">
-  </label>
+    <div class="srcadv" id="srcAdv" hidden>
+  <!-- ===================== FONTES LINKADAS ===================== -->
+  <fieldset class="sources">
+    <legend>fontes · planilhas linkadas</legend>
+    <div class="srcgrid">
+      <div class="srcrow">
+        <div class="sl">Base (logins)<small>Nome do usuário · Horário de login</small></div>
+        <input type="url" id="urlBase" placeholder="https://docs.google.com/.../pub?gid=...&single=true&output=csv">
+        <div class="srcstate" id="stBase">não carregada</div>
+      </div>
+      <div class="srcrow">
+        <div class="sl">Etv (cadastro)<small>FUNÇÃO · E-MAIL_2 · entrada/saída · hierarquia</small></div>
+        <input type="url" id="urlEtv" placeholder="https://docs.google.com/.../pub?gid=...&single=true&output=csv">
+        <div class="srcstate" id="stEtv">não carregada</div>
+      </div>
+      <div class="srcrow">
+        <div class="sl">Faltas apontadas<small>opcional · apelido · faltas</small></div>
+        <input type="url" id="urlFaltas" placeholder="(opcional) https://docs.google.com/.../output=csv">
+        <div class="srcstate" id="stFaltas">não carregada</div>
+      </div>
+    </div>
 
+    <div class="srcactions">
+      <button class="run" id="btnLoad">Carregar planilhas</button>
+      <button class="ghost" id="btnReload" title="Buscar de novo nas fontes">↻ Atualizar</button>
+      <span id="loadStatus" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></span>
+    </div>
+
+    <p class="srcnote">
+      Para o link funcionar a planilha precisa estar <b>publicada na web</b> (Arquivo › Compartilhar › Publicar na web ›
+      formato CSV) ou compartilhada como "qualquer um com o link". Isso deixa o conteúdo acessível por URL — trate
+      esses links como confidenciais. Se você abrir este arquivo com dois cliques (file://), o navegador pode
+      <b>bloquear o fetch (CORS)</b>; nesse caso sirva a página por http(s) ou use o upload manual abaixo.
+    </p>
+
+    <details class="manual">
+      <summary>ou subir os CSVs manualmente (fallback)</summary>
+      <div class="manualbody">
+        <div class="grid2">
+          <label class="drop" id="dropBase">
+            <span class="lbl">CSV — base (logins)</span>
+            <div class="name" id="nameBase">Arraste ou clique para escolher</div>
+            <div class="meta" id="metaBase">colunas esperadas: Nome do usuário · Horário de login</div>
+            <input type="file" id="fileBase" accept=".csv,.txt">
+          </label>
+          <label class="drop" id="dropEtv">
+            <span class="lbl">CSV — etv (cadastro)</span>
+            <div class="name" id="nameEtv">Arraste ou clique para escolher</div>
+            <div class="meta" id="metaEtv">colunas esperadas: FUNÇÃO · E-MAIL_2 · Data de entrada/Saida</div>
+            <input type="file" id="fileEtv" accept=".csv,.txt">
+          </label>
+        </div>
+        <label class="drop" id="dropFaltas" style="margin-top:14px">
+          <span class="lbl">CSV — faltas apontadas (opcional)</span>
+          <div class="name" id="nameFaltas">Arraste ou clique — colunas: apelido · faltas</div>
+          <div class="meta" id="metaFaltas">cruza pelo apelido e mostra a falta apontada ao lado de cada consultor</div>
+          <input type="file" id="fileFaltas" accept=".csv,.txt">
+        </label>
+      </div>
+    </details>
+  </fieldset>
+    </div><!-- /srcAdv -->
+  </section>
   <fieldset class="controls">
     <legend>regras</legend>
     <div class="row">
@@ -365,23 +614,6 @@
           <button data-v="sufixo" aria-pressed="false">Username c/ sufixo</button>
         </div>
       </div>
-      <div class="field">
-        <label>Função contém</label>
-        <input type="text" id="funcTxt" value="consultor" style="width:130px">
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:16px">
-      <div class="field" style="flex:1;min-width:260px">
-        <label>Feriados a descontar (opcional — um por linha, dd/mm/aaaa ou aaaa-mm-dd)</label>
-        <textarea id="feriados" placeholder="01/01/2026&#10;2026-04-21&#10;..."></textarea>
-      </div>
-    </div>
-
-    <div id="mapWrap" class="hide">
-      <div class="lbl" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;
-        text-transform:uppercase;color:var(--muted);margin:18px 0 2px">conferir colunas detectadas</div>
-      <div class="mapgrid" id="mapGrid"></div>
     </div>
 
     <div class="actions">
@@ -431,21 +663,67 @@
     casamento de e-mail, não ausência real.</p>
 </div>
 
+<footer class="appfoot">
+  <div class="appfoot-inner">
+    <div class="af-brand">metrocasa</div>
+    <div class="af-src">
+      <b>Fonte:</b> planilhas linkadas — histórico de login do Salesforce + cadastro (etv), lidas ao vivo no navegador.
+      Use <b>Atualizar</b> para repuxar. Nada é enviado a servidores; o cálculo roda localmente. <b>Confidencial — uso interno.</b>
+    </div>
+    <div class="af-cred">
+      <b>Acesso ao Salesforce</b><br>
+      <span class="who">Comercial · Metrocasa</span>
+    </div>
+  </div>
+</footer>
+
+<button id="backTop" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
+
 <script>
 "use strict";
+
+/* =====================================================================
+   CONFIG — deixe as planilhas "já linkadas" aqui.
+   Cole as URLs CSV (Google Sheets › Publicar na web › CSV, ou .../export?format=csv).
+   Ao abrir a página, ele tenta carregar essas URLs sozinho.
+   Deixe "" para não pré-carregar e digitar na tela.
+   ===================================================================== */
+const CONFIG = {
+  base:   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSJpfloUr4VOvAp--iLosg2aMd47_F-iw76kDXsP_bLTW_uQ0ud3DP-DLDhimuntOnZ6sULolA0GOw7/pub?gid=0&single=true&output=csv",          // LOGIN (aba gid=0)
+  etv:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0spL8nWrtzbL1yZnatSq3N2MBS5RZTQqbXQCwJHB0sWO5x218TxQgzufhpIePJkI03E0t_LbEIQ5S/pub?gid=999539750&single=true&output=csv",  // ETV (cadastro)
+  faltas: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSJpfloUr4VOvAp--iLosg2aMd47_F-iw76kDXsP_bLTW_uQ0ud3DP-DLDhimuntOnZ6sULolA0GOw7/pub?gid=492449668&single=true&output=csv",  // FALTAS (mesma planilha do LOGIN, aba gid=492449668)
+  autoLoad: true   // tentar carregar automaticamente ao abrir
+};
 
 /* ---------- estado ---------- */
 const ST = { base:null, etv:null, faltasMap:null, map:{}, result:null, view:"sum", sort:{k:"faltas",dir:-1} };
 
-/* ---------- leitura com fallback de encoding ---------- */
+/* ---------- leitura com fallback de encoding (a partir de ArrayBuffer) ---------- */
+function decodeSmart(buf){
+  let txt = new TextDecoder("utf-8",{fatal:false}).decode(buf);
+  if(txt.includes("\uFFFD")){ // provável ANSI/Windows-1252
+    try{ txt = new TextDecoder("windows-1252").decode(buf); }catch(e){}
+  }
+  return txt;
+}
 function readFileSmart(file){
-  return file.arrayBuffer().then(buf=>{
-    let txt = new TextDecoder("utf-8",{fatal:false}).decode(buf);
-    if(txt.includes("\uFFFD")){ // provável ANSI/Windows-1252
-      try{ txt = new TextDecoder("windows-1252").decode(buf); }catch(e){}
-    }
-    return txt;
-  });
+  return file.arrayBuffer().then(buf=>decodeSmart(buf));
+}
+
+/* ---------- fetch de CSV a partir de URL (mesmo tratamento de encoding) ---------- */
+function fetchCSV(url){
+  return fetch(url, {redirect:"follow", credentials:"omit", cache:"no-store"})
+    .then(r=>{
+      if(!r.ok) throw new Error("HTTP "+r.status+" "+r.statusText);
+      return r.arrayBuffer();
+    })
+    .then(buf=>{
+      const txt = decodeSmart(buf);
+      // pista de planilha não publicada / login do Google em vez do CSV
+      if(/<html|<!doctype/i.test(txt.slice(0,200)))
+        throw new Error("a URL devolveu HTML, não CSV (planilha não publicada ou link errado?)");
+      return txt;
+    });
 }
 
 /* ---------- parser CSV (detecta ; ou , ou tab, trata aspas) ---------- */
@@ -540,18 +818,133 @@ function parseCoord(raw, bound){
   return val;
 }
 
-/* ---------- UI: drops ---------- */
+/* =====================================================================
+   INGESTÃO — ponto único usado tanto pelo link quanto pelo upload
+   ===================================================================== */
+function ingestBaseEtv(slot, displayName, txt){
+  const parsed=parseCSV(txt);
+  ST[slot]={file:{name:displayName},...parsed};
+  const ids = slot==="base"
+    ? {name:"nameBase",meta:"metaBase",drop:"dropBase"}
+    : {name:"nameEtv", meta:"metaEtv", drop:"dropEtv"};
+  document.getElementById(ids.name).textContent=displayName;
+  document.getElementById(ids.meta).textContent=parsed.data.length.toLocaleString("pt-BR")+" linhas · "+parsed.headers.length+" colunas";
+  document.getElementById(ids.drop).classList.add("has");
+  tryAutoMap(); refreshRunState();
+  return parsed;
+}
+function ingestFaltas(displayName, txt){
+  const parsed=parseCSV(txt);
+  const cA=pickHeader(parsed.headers,["apelido","apelido completo","nome"])||parsed.headers[0];
+  const cF=pickHeader(parsed.headers,["faltas","falta","qtd faltas","total faltas"])||parsed.headers[1];
+  const map=new Map();
+  parsed.data.forEach(r=>{ const a=norm(r[cA]); if(!a) return; const raw=String(r[cF]==null?"":r[cF]).trim();
+    const n=parseInt(raw.replace(/[^0-9-]/g,""),10); map.set(a, isFinite(n)?n:raw); });
+  ST.faltasMap=map;
+  document.getElementById("nameFaltas").textContent=displayName;
+  document.getElementById("metaFaltas").textContent=map.size+" apelidos · colunas: "+cA+" / "+cF;
+  document.getElementById("dropFaltas").classList.add("has");
+  return map;
+}
+
+/* ---------- estado visual das fontes ---------- */
+const CONN={base:"idle",etv:"idle",faltas:"idle"};
+function setSrcState(slot, cls, txt){
+  const el=document.getElementById({base:"stBase",etv:"stEtv",faltas:"stFaltas"}[slot]);
+  if(el){ el.className="srcstate"+(cls?(" "+cls):""); el.textContent=txt; }
+  CONN[slot]= cls==="load" ? "load" : (cls||"idle");
+  paintConn();
+}
+function paintDot(el, state){
+  if(!el) return;
+  el.classList.remove("loading","ok","err");
+  if(state==="load") el.classList.add("loading");
+  else if(state==="ok") el.classList.add("ok");
+  else if(state==="err") el.classList.add("err");
+}
+function paintConn(){
+  ["base","etv","faltas"].forEach(s=>{
+    paintDot(document.getElementById("ld_"+s), CONN[s]);
+    paintDot(document.getElementById("cd_"+s), CONN[s]);
+  });
+  const card=document.getElementById("loadCard");
+  const msg=document.getElementById("loadMsg2");
+  const b=CONN.base, e=CONN.etv, f=CONN.faltas;
+  const anyErr = b==="err"||e==="err"||f==="err";
+  const loading = b==="load"||e==="load"||f==="load";
+  const coreOk = b==="ok" && e==="ok";
+  const falSettled = f==="ok"||f==="err"||f==="idle";
+  if(anyErr){
+    if(msg) msg.textContent="Falha ao conectar — confira as fontes abaixo.";
+    if(card) card.classList.remove("done");
+    showSrcAdv(true);
+  } else if(coreOk && falSettled && !loading){
+    if(msg) msg.textContent="Planilhas conectadas.";
+    setTimeout(()=>{ if(!(CONN.base==="err"||CONN.etv==="err"||CONN.faltas==="err") && CONN.base==="ok" && CONN.etv==="ok"){
+      const c=document.getElementById("loadCard"); if(c) c.classList.add("done"); } }, 950);
+  } else if(loading){
+    if(msg) msg.textContent="Conectando às planilhas…";
+  }
+}
+function showSrcAdv(show){
+  const adv=document.getElementById("srcAdv"); if(!adv) return;
+  adv.hidden=!show;
+}
+
+/* ---------- carregar a partir das URLs ---------- */
+function loadOneUrl(slot, url){
+  url=(url||"").trim();
+  if(!url){ setSrcState(slot,"","sem URL"); return Promise.resolve(false); }
+  setSrcState(slot,"load","carregando…");
+  return fetchCSV(url).then(txt=>{
+    const display="link · "+shortUrl(url);
+    let rowsN;
+    if(slot==="faltas"){ const m=ingestFaltas(display,txt); rowsN=m.size+" apelidos"; }
+    else { const p=ingestBaseEtv(slot,display,txt); rowsN=p.data.length.toLocaleString("pt-BR")+" linhas"; }
+    setSrcState(slot,"ok","✓ "+rowsN);
+    return true;
+  }).catch(err=>{
+    setSrcState(slot,"err","✕ "+err.message);
+    return false;
+  });
+}
+function shortUrl(u){
+  try{ const x=new URL(u); const gid=(x.search.match(/gid=(\d+)/)||[])[1]; return x.hostname.replace(/^www\./,"")+(gid?(" · gid "+gid):""); }
+  catch(e){ return u.slice(0,40)+"…"; }
+}
+
+function loadAllFromUrls(opts){
+  opts=opts||{};
+  const st=document.getElementById("loadStatus");
+  st.textContent="buscando nas fontes…";
+  const uB=document.getElementById("urlBase").value;
+  const uE=document.getElementById("urlEtv").value;
+  const uF=document.getElementById("urlFaltas").value;
+  return Promise.all([
+    loadOneUrl("base",uB),
+    loadOneUrl("etv",uE),
+    (uF&&uF.trim()) ? loadOneUrl("faltas",uF) : Promise.resolve(false)
+  ]).then(([okB,okE,okF])=>{
+    if(okB&&okE){
+      st.textContent="planilhas carregadas.";
+      if(opts.autoRun!==false){ document.getElementById("btnRun").click(); }
+    } else if(!okB && !okE){
+      st.textContent="nada carregado — confira as URLs ou use o upload manual.";
+    } else {
+      st.textContent="carregamento parcial — confira a fonte que falhou.";
+    }
+    return {okB,okE,okF};
+  });
+}
+
+/* ---------- UI: drops (upload manual / fallback) ---------- */
 function wireDrop(dropId,inputId,nameId,metaId,slot){
   const drop=document.getElementById(dropId), inp=document.getElementById(inputId);
   const setFile=(file)=>{
     if(!file)return;
     readFileSmart(file).then(txt=>{
-      const parsed=parseCSV(txt);
-      ST[slot]={file,...parsed};
-      document.getElementById(nameId).textContent=file.name;
-      document.getElementById(metaId).textContent=parsed.data.length.toLocaleString("pt-BR")+" linhas · "+parsed.headers.length+" colunas";
-      drop.classList.add("has");
-      tryAutoMap(); refreshRunState();
+      ingestBaseEtv(slot,file.name,txt);
+      setSrcState(slot,"ok","✓ arquivo: "+file.name);
     });
   };
   inp.addEventListener("change",e=>setFile(e.target.files[0]));
@@ -566,16 +959,8 @@ wireDrop("dropEtv","fileEtv","nameEtv","metaEtv","etv");
   if(!drop) return;
   const setFile=(file)=>{ if(!file) return;
     readFileSmart(file).then(txt=>{
-      const parsed=parseCSV(txt);
-      const cA=pickHeader(parsed.headers,["apelido","apelido completo","nome"])||parsed.headers[0];
-      const cF=pickHeader(parsed.headers,["faltas","falta","qtd faltas","total faltas"])||parsed.headers[1];
-      const map=new Map();
-      parsed.data.forEach(r=>{ const a=norm(r[cA]); if(!a) return; const raw=String(r[cF]==null?"":r[cF]).trim();
-        const n=parseInt(raw.replace(/[^0-9-]/g,""),10); map.set(a, isFinite(n)?n:raw); });
-      ST.faltasMap=map;
-      document.getElementById("nameFaltas").textContent=file.name;
-      document.getElementById("metaFaltas").textContent=map.size+" apelidos · colunas: "+cA+" / "+cF;
-      drop.classList.add("has");
+      ingestFaltas(file.name,txt);
+      setSrcState("faltas","ok","✓ arquivo: "+file.name);
       if(ST.base&&ST.etv&&ST.result) document.getElementById("btnRun").click();
     });
   };
@@ -584,6 +969,14 @@ wireDrop("dropEtv","fileEtv","nameEtv","metaEtv","etv");
   drop.addEventListener("dragleave",()=>{drop.style.borderColor="";});
   drop.addEventListener("drop",e=>{e.preventDefault();drop.style.borderColor="";setFile(e.dataTransfer.files[0]);});
 })();
+
+/* ---------- botões de carga ---------- */
+document.getElementById("btnLoad").addEventListener("click",()=>loadAllFromUrls());
+document.getElementById("btnReload").addEventListener("click",()=>loadAllFromUrls());
+(function(){ const b=document.getElementById("srcEditBtn"), adv=document.getElementById("srcAdv"), cb=document.getElementById("connBar");
+  const toggle=()=>{ if(!adv)return; adv.hidden=!adv.hidden; if(!adv.hidden) adv.scrollIntoView({behavior:"smooth",block:"nearest"}); };
+  if(b&&adv) b.addEventListener("click",toggle);
+  if(cb&&adv){ cb.addEventListener("click",toggle); cb.style.cursor="pointer"; cb.title="ver / ajustar fontes"; } })();
 
 /* ---------- segmented toggles ---------- */
 function wireSeg(id){
@@ -670,6 +1063,7 @@ function compute(){
   const consultores=[]; const emailMap=new Map();
   ST.etv.data.forEach(r=>{
     if(norm(r[m.funcao]).indexOf(funcNeedle)<0) return;
+    if(m.situacao && norm(r[m.situacao])!=="ativo") return; // só Situação = "Ativo"
     const email=(r[m.email]||"").toLowerCase().trim();
     if(!email) return;
     if(emailMap.has(email)) return; // distinct por chave
@@ -698,7 +1092,7 @@ function compute(){
     };
     consultores.push(c); emailMap.set(email,c);
   });
-  if(!consultores.length) return showErr('Nenhuma linha da etv com FUNÇÃO contendo "'+document.getElementById("funcTxt").value+'".');
+  if(!consultores.length) return showErr('Nenhum consultor com FUNÇÃO contendo "'+document.getElementById("funcTxt").value+'" e Situação = "Ativo". Confira o filtro na engrenagem e o mapeamento da coluna Situação.');
 
   const emailsByLen=[...emailMap.keys()].sort((a,b)=>b.length-a.length);
 
@@ -1234,7 +1628,7 @@ function buildStandalone(rep,meta,rows){
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Relatório de acesso ao Salesforce · ${meta.ini} a ${meta.fim}</title>
 <style>
-:root{--ground:#F7F5F1;--panel:#fff;--ink:#1A1613;--muted:#6E665D;--hair:#E7E1D9;--hair2:#F0ECE5;--brand:#C8102E;--brand-d:#9C0C24;--brand-soft:#FBE7E9;--signal:#C8102E;--ok:#5C7A66;--present-ink:#5C7A66;--geo:#1F5C72;--serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+:root{--ground:#f6f7f8;--panel:#fff;--ink:#1c2126;--muted:#5b6670;--hair:#e2e5e8;--hair2:#eef1f3;--brand:#e92224;--brand-d:#cf1d1f;--brand-soft:#fdecec;--signal:#b3261e;--ok:#1f7a55;--present-ink:#1f7a55;--geo:#1F5C72;--serif:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.5}
 .wrap{max-width:1080px;margin:0 auto;padding:0 22px 80px}.cover{background:var(--ink);color:#fff;margin:0 -22px 26px;padding:30px 40px 28px;border-bottom:4px solid var(--brand)}.cover .wordmark{font-size:22px;font-weight:800;letter-spacing:-.04em;color:#fff}.cover .wordmark .plus{color:var(--brand)}.cover .ek{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--brand);margin:16px 0 6px}.cover h1{font-family:var(--serif);font-size:32px;font-weight:600;letter-spacing:-.01em;color:#fff;margin:0}.cover .meta2{font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.66);margin-top:12px;letter-spacing:.02em}.cover .confid{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:3px;padding:3px 8px;margin-top:14px}
@@ -1445,6 +1839,39 @@ document.querySelectorAll(".presets button").forEach(b=>{
     if(ST.base&&ST.etv) document.getElementById("btnRun").click();
   });
 });
+
+/* ---------- boot: pré-preenche URLs do CONFIG e tenta carregar ---------- */
+(function(){
+  if(CONFIG.base)   document.getElementById("urlBase").value=CONFIG.base;
+  if(CONFIG.etv)    document.getElementById("urlEtv").value=CONFIG.etv;
+  if(CONFIG.faltas) document.getElementById("urlFaltas").value=CONFIG.faltas;
+  if(CONFIG.autoLoad && (CONFIG.base||CONFIG.etv)){
+    // abre o painel de fallback fechado; só dispara a carga
+    loadAllFromUrls({autoRun:true});
+  }
+})();
+
+/* ---------- topbar executiva: atualizar + carimbo + voltar ao topo ---------- */
+(function(){
+  function stamp(){const u=document.getElementById("updatedAt");
+    if(u) u.textContent="Atualizado "+new Date().toLocaleString("pt-BR");}
+  const rt=document.getElementById("btnReloadTop");
+  if(rt) rt.addEventListener("click",()=>{ try{loadAllFromUrls();}catch(e){} stamp(); });
+  // carimba quando a carga automática termina
+  if(CONFIG.autoLoad && (CONFIG.base||CONFIG.etv)) setTimeout(stamp,1200);
+  const bt=document.getElementById("backTop");
+  if(bt){ bt.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
+    window.addEventListener("scroll",()=>{bt.classList.toggle("show",window.scrollY>400);}); }
+
+  // engrenagem: painel de ajustes avançados
+  const cfgBtn=document.getElementById("cfgBtn"), cfgPop=document.getElementById("cfgPop"), cfgClose=document.getElementById("cfgClose");
+  function closeCfg(){ if(cfgPop){cfgPop.hidden=true;} if(cfgBtn)cfgBtn.classList.remove("on"); }
+  if(cfgBtn) cfgBtn.addEventListener("click",e=>{ e.stopPropagation();
+    const show=cfgPop.hidden; closeCfg(); if(show){cfgPop.hidden=false;cfgBtn.classList.add("on");} });
+  if(cfgClose) cfgClose.addEventListener("click",closeCfg);
+  document.addEventListener("click",e=>{ if(!e.target.closest(".popwrap")) closeCfg(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeCfg(); });
+})();
 </script>
 </body>
 </html>
